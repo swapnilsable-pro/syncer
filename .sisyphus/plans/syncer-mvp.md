@@ -328,7 +328,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 2. Data Models + Pydantic Schemas + Config
+- [x] 2. Data Models + Pydantic Schemas + Config
 
   **What to do**:
   - Create `src/syncer/models.py` with these Pydantic models:
@@ -451,7 +451,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 3. LRCLIB Client + LRC Parser
+- [x] 3. LRCLIB Client + LRC Parser
 
   **What to do**:
   - Create `src/syncer/clients/lrclib.py`:
@@ -535,7 +535,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 4. Spotify Metadata Client
+- [x] 4. Spotify Metadata Client
 
   **What to do**:
   - Create `src/syncer/clients/spotify.py`:
@@ -616,7 +616,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 5. YouTube Audio Extractor (yt-dlp Wrapper)
+- [x] 5. YouTube Audio Extractor (yt-dlp Wrapper)
 
   **What to do**:
   - Create `src/syncer/clients/youtube.py`:
@@ -700,7 +700,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 6. SQLite Cache Layer
+- [x] 6. SQLite Cache Layer
 
   **What to do**:
   - Create `src/syncer/cache.py`:
