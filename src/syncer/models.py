@@ -1,1 +1,40 @@
-# TODO: implement in Task 2
+from pydantic import BaseModel
+
+
+class SyncedWord(BaseModel):
+    text: str
+    start: float  # seconds
+    end: float    # seconds
+    confidence: float  # 0.0-1.0
+
+
+class SyncedLine(BaseModel):
+    text: str
+    start: float
+    end: float
+    words: list[SyncedWord]
+
+
+class TrackInfo(BaseModel):
+    title: str
+    artist: str
+    duration: float  # seconds
+    isrc: str | None = None
+    source_url: str | None = None
+    spotify_id: str | None = None
+    youtube_id: str | None = None
+
+
+class SyncResult(BaseModel):
+    track: TrackInfo
+    lines: list[SyncedLine]
+    confidence: float  # overall 0.0-1.0
+    timing_source: str  # 'lrclib_synced', 'lrclib_enhanced', 'whisperx_aligned', 'whisperx_only'
+    cached: bool = False
+    processing_time_seconds: float | None = None
+
+
+class SyncRequest(BaseModel):
+    url: str | None = None
+    title: str | None = None
+    artist: str | None = None
