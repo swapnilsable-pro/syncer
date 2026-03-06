@@ -449,3 +449,13 @@
 
 ### Minor Issue
 - `snap.py` has dead code: `_interpolate_timestamp()` is defined but never called (inline interpolation used instead in `snap_words_to_lyrics`)
+
+## Task 1: Language Parameter Threading (2026-03-07)
+
+- **AlignmentResult dataclass**: Wraps `words: list[AlignedWord]` + `detected_language: str`. All pipeline code that used raw word lists now uses `.words` attribute.
+- **Pipeline mock pattern**: `mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="en")` — simplest way to mock the new return type without importing AlignmentResult in tests.
+- **Cache key change**: Adding `|{language or 'auto'}` to the key means old cache entries with same title/artist/duration but no language won't match requests with `language=None` (which maps to `'auto'`). This is backward-compatible because the old key format never included the `|auto` suffix, so old entries simply won't be hit — they become stale, which is acceptable.
+- **whisperx.transcribe() accepts `language=None`** gracefully — it auto-detects. No special handling needed for the None case.
+- **`_validate_language` is self-contained** in the aligner module — no external deps needed. Simple: 2 lowercase alpha chars.
+- **182 tests pass** after changes (up from ~170 before new tests were added).
+- **__pycache__ cleanup**: Had to add `__pycache__/` and `*.pyc` to .gitignore — these were being tracked.
