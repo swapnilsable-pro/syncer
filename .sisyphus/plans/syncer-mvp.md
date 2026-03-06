@@ -1442,7 +1442,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 13. End-to-End Tests with 5 Reference Songs
+- [x] 13. End-to-End Tests with 5 Reference Songs
 
   **What to do**:
   - Create `tests/test_e2e.py` with comprehensive end-to-end tests:
