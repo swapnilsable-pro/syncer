@@ -425,3 +425,27 @@
 - `SyncRequest()` with all-None fields is valid Pydantic but raises ValueError in pipeline._resolve_input()
 - Invalid URL (not YouTube/Spotify) raises ValueError("Unsupported URL format: ...") in _resolve_input
 - TestClient(app) triggers lifespan → real SyncPipeline init — appropriate for e2e, not for unit tests
+
+## Code Quality Review (F2) — 2026-03-07
+
+### Build & Tests
+- All 13 .py files compile clean
+- 161 tests pass, 0 fail (100% green)
+
+### Anti-pattern Scan
+- Bare except: 0
+- Hardcoded secrets: 0 (matches are param names/defaults)
+- ABC/abstractmethod: 0
+- Plugin patterns: 0
+- Print in prod: 4 in __main__.py — correct for CLI (stderr errors, stdout JSON)
+
+### Architecture Notes
+- `api.py` uses modern `lifespan` context manager, not deprecated `on_event`
+- `__main__.py` correctly logs to stderr, JSON to stdout
+- `snap.py` DP algorithm is Smith-Waterman local alignment — correct approach
+- `pipeline.py` orchestrates 9 clean steps with proper error chain
+- `cache.py` uses broad except for resilience (cache failure shouldn't crash pipeline)
+- No over-abstraction anywhere: concrete classes, no interfaces, no plugin system
+
+### Minor Issue
+- `snap.py` has dead code: `_interpolate_timestamp()` is defined but never called (inline interpolation used instead in `snap_words_to_lyrics`)
