@@ -800,7 +800,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 7. Demucs Vocal Isolation Module
+- [x] 7. Demucs Vocal Isolation Module
 
   **What to do**:
   - Create `src/syncer/alignment/demucs_separator.py`:
@@ -896,7 +896,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 8. WhisperX Word Alignment Module
+- [x] 8. WhisperX Word Alignment Module
 
   **What to do**:
   - Create `src/syncer/alignment/whisperx_aligner.py`:
@@ -1004,7 +1004,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 9. Snap-to-Lyrics Text Matching + Confidence Scoring
+- [x] 9. Snap-to-Lyrics Text Matching + Confidence Scoring
 
   **What to do**:
   - Create `src/syncer/alignment/snap.py` — **this is the most critical custom code in the entire MVP**:
