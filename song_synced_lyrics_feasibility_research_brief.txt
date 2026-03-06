@@ -1,0 +1,814 @@
+SONG-SYNCED LYRICS SERVICE — RESEARCH BRIEF AND BUILD PLAN
+===============================================================
+
+PURPOSE OF THIS DOCUMENT
+------------------------
+This document is a research-oriented planning brief for building a service that takes a song input from Spotify, Apple Music, or YouTube / YouTube Music and produces synchronized lyrics, ideally at line level first and then at word level. This is intentionally written as a product/research handoff rather than a code implementation guide. The goal is to give another LLM or technical planner enough context to convert this into a detailed architecture, vendor selection plan, execution roadmap, and implementation strategy.
+
+ASSUMPTIONS
+-----------
+1. Licensing, rights, and permissions are assumed to be solvable and secured.
+2. The purpose here is technical and product feasibility, not legal analysis.
+3. The target system should work as a commercial-grade service, not merely a lab prototype.
+4. The system may support multiple levels of lyric synchronization quality:
+   - line-level timing
+   - word-level timing
+   - optionally syllable-level or karaoke-grade timing in future phases
+5. The target is not just “can it work?” but “can it work reliably enough to power premium user experiences?”
+
+EXECUTIVE FEASIBILITY VERDICT
+-----------------------------
+Yes, the service is technically feasible.
+
+More specifically:
+
+- Building a system that identifies a song and returns line-level synchronized lyrics is highly feasible.
+- Building a system that returns word-level synchronized lyrics is also feasible and can be production-grade with the right data pipeline, alignment stack, and fallback logic.
+- Building a system that performs consistently across difficult songs, multiple languages, live recordings, remasters, overlapping vocals, dense rap, ad-libs, and alternate versions is feasible but significantly more challenging.
+- “Best in class” quality is possible, but it will not come from one model alone. It will come from a layered system: track resolution, lyrics normalization, audio preprocessing, alignment, confidence estimation, correction heuristics, QA workflows, and continuous evaluation.
+
+The main research conclusion is that this should be approached as an orchestration problem rather than a single-model problem.
+
+WHY THIS PRODUCT IS BUILDABLE
+-----------------------------
+At a high level, synchronized lyrics generation is a solved-enough problem in industry when the system has one of the following:
+1. clean lyrics text and access to the song audio
+2. clean lyrics text and access to a processed vocal track
+3. high-quality speech/singing transcription plus forced alignment
+4. preexisting timing references that can be refined or normalized
+
+There are mature building blocks in adjacent areas:
+- music metadata matching and track identification
+- lyrics text retrieval and normalization
+- source separation / vocal isolation
+- ASR and singing-aware transcription research
+- forced alignment at word/phoneme level
+- beat and section analysis
+- confidence scoring and human-in-the-loop correction pipelines
+
+The opportunity is in combining these into a robust service tuned for songs rather than ordinary speech.
+
+IMPORTANT PRODUCT REALITY
+-------------------------
+The best commercial system will almost certainly not rely on one path for all songs.
+
+Instead, it should support multiple paths:
+
+Path A: Lyrics text exists and aligns cleanly to audio
+    This is the preferred path. It is likely to offer the highest quality and best speed.
+
+Path B: Lyrics text exists but alignment is noisy
+    Use enhanced preprocessing, alternate alignment passes, and confidence-based correction.
+
+Path C: Lyrics text is unavailable or low quality
+    Use transcription plus alignment, with lower confidence and stricter gating.
+
+Path D: Song is too difficult for automatic word timing
+    Fall back to line-level timing, section-level timing, or “not available.”
+
+This matters because a premium product is defined not only by peak performance but by graceful failure behavior.
+
+PRODUCT GOAL DEFINITION
+-----------------------
+The service should accept a song reference from one of several ecosystems and return a rich timing object that can drive lyric display and music-reactive experiences.
+
+The output should ideally include:
+- canonical track identity
+- match confidence
+- lyrics text
+- normalized lyric structure
+- line-level timestamps
+- word-level timestamps
+- optional syllable timings
+- segment structure such as intro, verse, chorus, bridge, outro
+- confidence scores
+- alternate version handling metadata
+- language metadata
+- explicit/clean version metadata
+- provenance of timing generation
+- cacheability and revision/version identifiers
+
+The service should be able to support:
+- live synced lyric display
+- word highlighting
+- karaoke-style animation
+- music visual choreography
+- downstream metadata generation
+- search and indexing
+
+CORE RESEARCH QUESTION TO HAND TO A TECHNICAL LLM
+-------------------------------------------------
+Design a commercial-grade multi-source service that accepts a track from Spotify, Apple Music, or YouTube / YouTube Music and returns production-ready synchronized lyrics, with line-level and word-level timings, confidence scoring, fallback behavior, and a cacheable canonical data model.
+
+HIGH-LEVEL SYSTEM SHAPE
+-----------------------
+The system should be thought of as six major layers:
+
+1. Source Ingestion and Track Resolution
+2. Lyrics Acquisition and Normalization
+3. Audio Access and Preprocessing
+4. Alignment and Timing Generation
+5. Quality Control, Confidence, and Fallback
+6. Packaging, Storage, Retrieval, and Iteration
+
+Each of these layers must be robust independently.
+
+LAYER 1 — SOURCE INGESTION AND TRACK RESOLUTION
+-----------------------------------------------
+The system begins with song input. This input may arrive as:
+- Spotify track ID
+- Apple Music song ID
+- YouTube video ID
+- YouTube Music track reference
+- title/artist query
+- ISRC
+- uploaded audio
+- detected currently-playing metadata from a client integration
+
+The first job is to resolve all of these to a canonical internal song entity.
+
+Research requirements for this layer:
+- determine the canonical identity strategy
+- define how multiple platform IDs map to one internal song
+- resolve conflicts between versions
+- distinguish album version, clean version, explicit version, remaster, live version, acoustic version, sped-up version, and user-uploaded variants
+- incorporate duration matching and audio fingerprint checks where necessary
+
+Important questions:
+- What unique identity key should the system use internally?
+- Is ISRC sufficient, or should the system maintain its own canonical track graph?
+- How should the system detect near-duplicate recordings?
+- How should it decide when two platform tracks are actually the same recording versus a different version?
+
+Research direction:
+The technical planner should treat track identity as foundational. A weak identity layer will corrupt lyric timing quality because even perfect alignment applied to the wrong version is useless.
+
+LAYER 2 — LYRICS ACQUISITION AND NORMALIZATION
+----------------------------------------------
+Once a track is resolved, the next step is lyric text acquisition.
+
+Possible lyric sources:
+- licensed lyrics providers
+- rights-cleared internal lyric catalog
+- publisher or label feeds
+- user-supplied lyrics
+- transcription-generated lyrics as a fallback
+- hybrid sources with ranking and validation
+
+Key product truth:
+Alignment works much better when the system starts from known lyric text rather than trying to infer all words from raw audio alone.
+
+The lyric text layer should handle:
+- punctuation normalization
+- repeated lines
+- ad-libs
+- alternate spellings
+- multilingual text
+- transliteration
+- profanity / censored variants
+- bracketed annotations like [Chorus], [Verse 2]
+- non-sung spoken interjections
+- artist-specific stylization
+- apostrophes, contractions, slang, and elongated words
+- duplicated chorus blocks
+- embedded backing vocal phrases
+
+The research planner should answer:
+- What lyric normalization standard should be used before alignment?
+- Which transformations help alignment accuracy versus hurt authenticity?
+- How should unofficial text variants be handled?
+- How should the system preserve display text while also generating an alignment-friendly text form?
+
+Recommended design principle:
+Maintain two lyric forms:
+1. display form — human-facing, faithful to the intended presentation
+2. alignment form — normalized for machine alignment
+
+These two must be linkable.
+
+LAYER 3 — AUDIO ACCESS AND PREPROCESSING
+----------------------------------------
+For timing generation, the system needs analyzable audio or a lawful signal representation.
+
+Audio preprocessing should be treated as a major research area because alignment quality is heavily affected by the clarity of the vocal signal.
+
+Possible preprocessing steps:
+- loudness normalization
+- downmixing decisions
+- vocal isolation / source separation
+- denoising
+- silence detection
+- section segmentation
+- beat tracking
+- tempo estimation
+- phrase boundary estimation
+- voice activity detection
+- phoneme-friendly enhancement
+
+Research questions:
+- Should the system align directly on full-mix audio, or first perform vocal extraction?
+- When does source separation improve timing, and when does it create artifacts that hurt alignment?
+- Should different genres use different preprocessing paths?
+- How should the pipeline handle songs with overlapping lead and background vocals?
+
+Critical point:
+The technical planner should compare the value of a fast “direct alignment” route versus a slower “vocal-isolated alignment” route.
+
+Likely conclusion:
+A tiered pipeline is better:
+- fast path for easy songs
+- enhanced path for difficult songs
+
+LAYER 4 — ALIGNMENT AND TIMING GENERATION
+-----------------------------------------
+This is the core intelligence of the product.
+
+The system’s job is to map lyric text to time.
+
+Timing granularity targets:
+- line-level timing
+- word-level timing
+- optional phoneme/syllable timing
+
+Primary approaches to research:
+1. Forced alignment using known lyrics text
+2. Singing-aware ASR followed by alignment
+3. Hybrid phoneme alignment
+4. Beat-aware correction
+5. Multi-pass ensemble alignment
+
+Research references worth considering:
+- Montreal Forced Aligner (MFA)
+- Gentle-style alignment concepts
+- singing voice alignment literature
+- SongTrans
+- STARS and related singing transcription/alignment research
+- Whisper-like transcription models only as one component, not the whole solution
+- phoneme-based acoustic models
+- language-specific alignment resources
+
+The planner should compare:
+- word-timestamp precision
+- robustness across genres
+- multilingual support
+- inference speed
+- compute cost
+- ease of adaptation
+- confidence estimation capability
+- ability to handle repeated choruses and ad-libs
+
+Important practical truth:
+Ordinary speech ASR is not enough by itself.
+Singing differs from speech in pitch variation, elongation, melisma, backing harmonies, rhythm, and pronunciation. The system should therefore avoid assuming that a general speech transcription model alone will produce best-in-class lyric sync.
+
+Most promising product approach:
+Use known lyrics text whenever available, then align it to audio using a singing-aware alignment pipeline. Only rely on transcription-first workflows for missing or low-confidence cases.
+
+MULTI-PASS ALIGNMENT STRATEGY
+-----------------------------
+A strong commercial system should likely use multiple passes.
+
+Example conceptual flow:
+Pass 1:
+- coarse line segmentation
+- identify likely entry and exit times for lyric lines
+
+Pass 2:
+- word-level forced alignment within each line window
+
+Pass 3:
+- confidence evaluation, drift detection, repeated phrase reconciliation
+
+Pass 4:
+- optional beat-aware smoothing or human-review triggering
+
+This is important because direct full-song word alignment may fail on long repeated structures.
+
+ALIGNMENT OUTPUT FORMAT
+-----------------------
+The service should return a rich timing schema, not just LRC text.
+
+The output should ideally include:
+- overall track metadata
+- language(s)
+- lyrics source
+- processing version
+- timing generation method
+- line objects with start/end times
+- word objects with start/end times
+- confidence at line and word level
+- optional phoneme or syllable arrays
+- notes on inferred or corrected timings
+- fallback flags
+- references to segment structure
+
+The technical LLM should design a durable canonical schema suitable for:
+- streaming to clients
+- caching
+- later revision
+- offline QA
+- analytics
+- rollback between generation versions
+
+LAYER 5 — QUALITY CONTROL, CONFIDENCE, AND FALLBACK
+---------------------------------------------------
+This is where many systems fail.
+
+A commercial-grade service must know when not to trust itself.
+
+Required confidence concepts:
+- track match confidence
+- lyric text confidence
+- alignment confidence
+- line-level timing confidence
+- word-level timing confidence
+- drift confidence
+- language detection confidence
+- source separation confidence
+
+Quality control tasks:
+- detect impossible timings
+- detect overlapping timestamps that break display
+- detect words assigned to silence
+- detect major drift by end of track
+- compare repeated chorus timings for consistency
+- flag tracks with too many low-confidence words
+- distinguish “usable for line sync” from “usable for word sync”
+
+Fallback behaviors:
+- return line-level only
+- hide low-confidence words
+- return partial sync
+- mark sync unavailable
+- queue for reprocessing
+- queue for human review
+- use a slower, higher-cost second pass
+
+Research requirement:
+The technical planner should define confidence thresholds and the policy for each threshold. This matters as much as model choice.
+
+LAYER 6 — STORAGE, CACHING, RETRIEVAL, AND ITERATION
+----------------------------------------------------
+Once timing is generated, it becomes a reusable asset.
+
+The service should not regenerate everything repeatedly if the track has already been processed at a high enough confidence.
+
+Storage needs:
+- canonical track table
+- platform ID mapping table
+- lyrics text table
+- normalized lyric variants
+- alignment result table
+- processing version history
+- confidence and quality metrics
+- cache invalidation logic
+- language and region metadata
+- alternate version relationships
+- review state and provenance
+
+Research questions:
+- What should be cached permanently versus recomputed?
+- How should generation versions be stored so that improved alignment models can replace old outputs safely?
+- How should client-facing payloads be optimized for low-latency retrieval?
+- How should the system represent multiple lyric variants for the same song?
+
+PRODUCT TIERS AND PHASES
+------------------------
+The project should be phased rather than attempting best-in-class in one leap.
+
+PHASE 1 — FEASIBILITY MVP
+Goal:
+Prove end-to-end generation for a narrow catalog and a few languages.
+
+Scope:
+- one or two music sources for track identity
+- licensed or clean lyric text for a limited catalog
+- line-level sync first
+- word-level sync for simpler songs
+- manual inspection on a test set
+- basic confidence scoring
+- basic caching
+
+Success criteria:
+- end-to-end pipeline works
+- timings feel plausible and stable
+- clear pass/fail categories emerge
+- low-latency retrieval from cache works
+
+What this phase answers:
+- can the service work at all?
+- which alignment path is strongest?
+- what classes of songs fail most often?
+- what metadata is essential?
+
+PHASE 2 — PRODUCTION FOUNDATIONS
+Goal:
+Move from demo quality to stable service quality.
+
+Scope:
+- stronger track resolution
+- better lyric normalization
+- fast path and slow path alignment
+- word-level timing for broader catalog
+- automated evaluation framework
+- monitoring and reprocessing
+- confidence-based fallback
+- processing versioning
+
+Success criteria:
+- stable word sync across mainstream catalog
+- controlled failure modes
+- measurable quality metrics
+- internal QA tooling
+
+PHASE 3 — BEST-IN-CLASS DIFFERENTIATION
+Goal:
+Surpass commodity synced lyrics.
+
+Scope:
+- better handling of rap, multilingual songs, ad-libs, harmonies
+- karaoke-grade animations
+- syllable timing where practical
+- richer song structure metadata
+- expressive timing for visual choreography
+- human-in-the-loop correction for premium catalog
+- regional and genre-specific tuning
+
+Success criteria:
+- visibly better than standard line sync
+- strong retention value in lyric and visual experiences
+- premium-quality outputs on high-value tracks
+
+DATA STRATEGY RESEARCH
+----------------------
+The planner should evaluate what combination of the following leads to highest product reliability:
+
+1. Licensed text-first approach
+2. Transcription-first fallback approach
+3. Human-corrected gold dataset for evaluation
+4. Genre/language-specific benchmark sets
+5. Synthetic data augmentation where useful
+6. Weakly supervised matching on large catalogs
+7. Semi-automatic review tools for difficult songs
+
+The most important point:
+Without a strong evaluation dataset, it will be impossible to know whether changes are truly improving quality.
+
+EVALUATION STRATEGY
+-------------------
+The service needs a formal evaluation plan.
+
+Evaluation should happen at multiple levels:
+1. track identity correctness
+2. lyric text correctness
+3. line timing accuracy
+4. word timing accuracy
+5. user-perceived sync quality
+6. downstream visual choreography usefulness
+
+Metrics to research:
+- boundary error at line and word level
+- alignment coverage
+- percentage of low-confidence words
+- drift over track duration
+- median / p95 latency for generation
+- cache hit rates
+- user-facing acceptability scores
+- fallback rate by genre/language/source
+
+Human evaluation rubric should include:
+- does the highlighted word feel on-time?
+- does the line begin too early or too late?
+- do repeated choruses align consistently?
+- do ad-libs feel distracting or correct?
+- is the sync usable for karaoke-style display?
+- does the sync feel musically natural, not just statistically aligned?
+
+Important insight:
+Perceived quality matters more than raw timestamp error alone. Slightly smoothed, musically intuitive timings may outperform mathematically exact but visually jittery timings.
+
+EDGE CASE RESEARCH AREAS
+------------------------
+The technical planner must explicitly address these:
+
+1. Fast rap and dense lyrical delivery
+2. Melisma, where one syllable stretches over many notes
+3. Overlapping vocals and harmonies
+4. Live versions with crowd noise and altered phrasing
+5. Remasters and slightly shifted intros
+6. Instrumental intros and outros
+7. Spoken word sections
+8. Multilingual or code-switched lyrics
+9. Non-Latin scripts
+10. Censored / explicit mismatches
+11. Repeated chorus ambiguity
+12. Backing vocal call-and-response
+13. Low-resource languages
+14. Poor metadata or mismatched lyric source
+15. Multiple legitimate lyric variants online
+16. Cover versions and user-generated uploads
+17. DJ mixes and medleys
+18. Songs with no stable tempo
+
+These should not be treated as afterthoughts. They often define whether the service feels truly robust.
+
+MULTILINGUAL STRATEGY
+---------------------
+A serious service must plan for multilingual support from the start, even if initial release is limited.
+
+Research questions:
+- Which languages should be supported in phase 1, phase 2, and phase 3?
+- Which languages have strong forced-alignment resources?
+- Which require transliteration or phoneme dictionaries?
+- How should the system handle code-switching within one line?
+- How should it align scripts like Hindi, Japanese, Arabic, Korean, etc.?
+
+Recommendation:
+The planner should not assume one universal model is enough. Language-specific resources or routing may be necessary.
+
+RAP, POP, AND DIFFERENT GENRES
+------------------------------
+Different genres stress the system differently.
+
+Pop:
+- usually easier
+- cleaner structure
+- repeated choruses
+- more predictable phrasing
+
+Rap:
+- denser word rate
+- slurring and compression
+- pronunciation divergence
+- ad-libs and overlaps
+
+Rock / live:
+- noisy vocals
+- crowd sound
+- timing variation
+- expressive phrasing
+
+Classical crossover / cinematic vocals:
+- long sustained vowels
+- difficult word boundaries
+- sparse beats
+
+Research requirement:
+The technical planner should consider genre-aware routing or genre-specific heuristics.
+
+SPEED VS QUALITY TRADEOFF
+-------------------------
+The system design must decide when to optimize for:
+- fastest generation
+- highest timing accuracy
+- lowest compute cost
+- best coverage
+- best user perception
+
+This naturally suggests at least two modes:
+1. online fast generation
+2. offline high-quality generation and cache fill
+
+Likely product pattern:
+- if a track is uncached, generate a fast initial result
+- later improve it asynchronously through a higher-quality pipeline
+- keep version history and confidence changes
+
+The planner should define:
+- acceptable first-response latency
+- when to block versus return partial results
+- whether line-level can appear first while word-level refines later
+
+BUILD VS BUY RESEARCH
+---------------------
+Another LLM should compare where the company should build internally versus where it should use vendors or open-source components.
+
+Candidates to compare:
+- lyrics providers
+- source separation providers/models
+- ASR vendors
+- forced-alignment frameworks
+- music structure analysis tools
+- audio fingerprinting vendors
+- metadata enrichment services
+- human QA platforms or internal tools
+
+Research questions:
+- What should remain core IP?
+- What is commodity infrastructure?
+- Where are vendors good enough?
+- Which parts most strongly affect differentiation?
+
+Likely answer:
+Core differentiation is probably in:
+- canonical track matching across ecosystems
+- lyric normalization and variant handling
+- alignment orchestration and fallback logic
+- confidence and quality policy
+- premium visual/interactive timing outputs
+
+HUMAN-IN-THE-LOOP STRATEGY
+--------------------------
+If the product aims for best-in-class quality, it should seriously consider selective human review.
+
+Not every track needs human attention.
+Human review should be reserved for:
+- high-value catalog
+- low-confidence outputs
+- viral tracks
+- tracks with many complaints
+- multilingual / complex songs that models handle poorly
+
+Research should define:
+- what an internal lyric timing editor should look like
+- how corrections feed back into training/evaluation
+- whether editors adjust line, word, or syllable timings
+- how QA effort is prioritized
+
+This may become a major differentiator.
+
+QUALITY BAR STRATEGY
+--------------------
+The planner should define different quality bars:
+
+Bar A:
+usable line sync
+
+Bar B:
+good word sync for ordinary lyric display
+
+Bar C:
+premium word sync for animated visuals
+
+Bar D:
+karaoke-grade or syllable-grade sync
+
+Each bar should have:
+- quantitative metrics
+- confidence thresholds
+- allowed failure types
+- display policy
+
+This prevents the organization from using one vague word like “accurate.”
+
+WHAT “BEST IN CLASS” SHOULD MEAN
+--------------------------------
+The phrase should be operationalized.
+
+It should not mean merely:
+- more words timestamped
+- lower raw alignment error on a small benchmark
+
+It should mean:
+- higher coverage across real-world catalog
+- fewer visibly wrong highlights
+- better behavior on hard tracks
+- smarter fallbacks
+- more natural musical timing
+- better support for visuals and choreography
+- stronger confidence gating
+- faster retrieval from cache
+- cleaner handling of alternate versions and multilingual content
+
+RISKS TO EXPLICITLY RESEARCH
+----------------------------
+1. Track identity mistakes causing wrong lyric sync
+2. Lyric text mismatch against recording version
+3. Source separation artifacts
+4. Speech ASR underperforming on sung vocals
+5. Drift on long tracks
+6. Poor performance on rap and live tracks
+7. Multilingual complexity
+8. Compute cost exploding for slow alignment paths
+9. Insufficient evaluation data
+10. Inconsistent user experience between cached and uncached songs
+11. Low-confidence outputs being shown too aggressively
+12. Excessive complexity without measurable quality gain
+
+The technical planner should rank these by severity and mitigation options.
+
+SUGGESTED DECISION FRAMEWORK FOR THE NEXT LLM
+---------------------------------------------
+The next LLM should structure its technical plan around these decisions:
+
+Decision 1:
+What is the canonical track identity strategy?
+
+Decision 2:
+Will the primary pipeline be text-first forced alignment, transcription-first, or hybrid?
+
+Decision 3:
+What audio preprocessing stack is justified?
+
+Decision 4:
+How many quality tiers should the product have?
+
+Decision 5:
+What confidence metrics determine fallback behavior?
+
+Decision 6:
+How should the service cache, version, and reprocess outputs?
+
+Decision 7:
+What benchmark datasets and evaluation protocol are required before launch?
+
+Decision 8:
+What should be built internally versus acquired?
+
+Decision 9:
+Which genres and languages should be phase 1 only versus later phases?
+
+Decision 10:
+What is the latency target for first response and for improved later versions?
+
+RECOMMENDED INITIAL THESIS
+--------------------------
+A strong initial thesis for the technical planner is:
+
+Build a text-first, alignment-centric synced lyrics system.
+Use high-quality lyric text whenever available.
+Use track resolution and version matching as a first-class subsystem.
+Adopt a two-lane generation strategy:
+- fast path for broad coverage
+- enhanced path for difficult tracks
+Score every output with confidence.
+Fall back gracefully from word-level to line-level when confidence drops.
+Cache all successful outputs under a canonical track schema.
+Continuously reprocess tracks as alignment models improve.
+Use selective human review for premium catalog and hard failures.
+
+This thesis is likely to be more reliable than a transcription-only strategy.
+
+RESEARCH DELIVERABLES TO ASK FROM THE NEXT LLM
+----------------------------------------------
+Ask the next LLM to produce:
+
+1. A system architecture plan
+2. A vendor / framework comparison matrix
+3. A phased roadmap
+4. A canonical data model for synced lyrics
+5. An evaluation plan with metrics and benchmark design
+6. A fallback and confidence policy
+7. A build-vs-buy recommendation
+8. A genre/language rollout strategy
+9. A compute and latency strategy
+10. A risk register with mitigation steps
+
+COPYABLE MASTER PROMPT FOR THE NEXT LLM
+---------------------------------------
+Use the following prompt exactly or adapt it slightly:
+
+You are a senior research analyst and product systems planner. Design a commercial-grade service that accepts song input from Spotify, Apple Music, and YouTube / YouTube Music and returns synchronized lyrics suitable for premium real-time lyric display and music-reactive visual experiences. Assume licensing, permissions, and rights are already secured. Focus on technical and product feasibility, not legal feasibility.
+
+Your job is to create a deeply reasoned technical planning document, not code. The output should recommend the best end-to-end system design for generating line-level and word-level synchronized lyrics, and optionally syllable-level timing for future phases.
+
+Please structure your answer into the following sections:
+1. Executive summary
+2. Feasibility verdict
+3. Product scope and assumptions
+4. Canonical track identity and cross-platform resolution strategy
+5. Lyrics acquisition and normalization strategy
+6. Audio access and preprocessing strategy
+7. Alignment and timing generation strategy
+8. Comparison of candidate methods, models, frameworks, or vendors
+9. Confidence scoring and fallback policy
+10. Storage, caching, and versioning strategy
+11. Evaluation framework and metrics
+12. Edge cases and difficult song classes
+13. Multilingual strategy
+14. Genre-specific considerations
+15. Human-in-the-loop strategy
+16. Phased roadmap from MVP to best-in-class
+17. Build-vs-buy recommendations
+18. Risks and mitigations
+19. Recommended final architecture
+20. Open questions and decisions needing experimentation
+
+Constraints:
+- Prefer a text-first alignment strategy if justified.
+- Explicitly compare line-level versus word-level difficulty.
+- Treat track identity and version matching as critical.
+- Do not assume general speech ASR alone is enough for singing.
+- Include a practical recommendation for fast path versus slow path processing.
+- Include confidence thresholds and fallback recommendations.
+- Recommend how to benchmark quality with both machine metrics and human evaluation.
+- Be explicit about tradeoffs between latency, quality, cost, and coverage.
+- Distinguish what should be done in phase 1, phase 2, and phase 3.
+
+FINAL RESEARCH POSITION
+-----------------------
+The project is feasible, but success depends on disciplined system design.
+
+The winning product will likely:
+- start from trusted lyric text when possible
+- use strong track identity resolution
+- align text to audio rather than relying only on transcription
+- support multiple processing paths
+- score confidence rigorously
+- fall back intelligently
+- cache everything under a stable canonical model
+- evaluate relentlessly on hard songs and real user perception
+
+In other words, this is not just an AI model problem. It is a catalog intelligence, alignment quality, and product reliability problem.
+
+That is also why it is a strong opportunity: a company that solves these layers well can build an experience that feels substantially better than ordinary synced lyrics.
