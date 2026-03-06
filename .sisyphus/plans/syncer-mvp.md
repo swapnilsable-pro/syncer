@@ -1119,7 +1119,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 10. Sync Pipeline Orchestrator
+- [x] 10. Sync Pipeline Orchestrator
 
   **What to do**:
   - Create `src/syncer/pipeline.py` — the main orchestration module:
