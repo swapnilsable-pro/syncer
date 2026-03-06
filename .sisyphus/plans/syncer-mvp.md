@@ -1249,7 +1249,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 11. FastAPI REST API
+- [x] 11. FastAPI REST API
 
   **What to do**:
   - Create `src/syncer/api.py`:
@@ -1357,7 +1357,7 @@ Max Concurrent: 5 (Wave 1)
 
 ---
 
-- [ ] 12. CLI Interface
+- [x] 12. CLI Interface
 
   **What to do**:
   - Create `src/syncer/__main__.py`:
