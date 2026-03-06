@@ -149,3 +149,23 @@ def test_get_by_id_invalid_returns_none(cache):
     """Test that get_by_id with invalid ID returns None."""
     result = cache.get_by_id("invalid_track_id_12345")
     assert result is None, "Invalid track ID should return None"
+
+
+def test_cache_key_includes_language():
+    """Different language produces different track ID."""
+    id_hi = generate_track_id("test", "artist", 100, "hi")
+    id_none = generate_track_id("test", "artist", 100, None)
+    assert id_hi != id_none, "Language should affect track ID"
+
+
+def test_cache_isolation_by_language(cache, sample_sync_result):
+    """Result stored with language='hi' is NOT found when looking up with language=None."""
+    cache.store_result(sample_sync_result, language="hi")
+
+    # Lookup without language should miss
+    result = cache.get_cached("Yesterday", "The Beatles", 125.0, language=None)
+    assert result is None, "Different language should produce cache miss"
+
+    # Lookup with correct language should hit
+    result = cache.get_cached("Yesterday", "The Beatles", 125.0, language="hi")
+    assert result is not None, "Same language should produce cache hit"

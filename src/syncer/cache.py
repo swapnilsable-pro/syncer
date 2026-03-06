@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS sync_results (
 """
 
 
-def generate_track_id(title: str, artist: str, duration: float | None) -> str:
-    """Generate a deterministic track ID from title, artist, and duration."""
-    key = f"{title.lower().strip()}|{artist.lower().strip()}|{round(duration or 0)}"
+def generate_track_id(title: str, artist: str, duration: float | None, language: str | None = None) -> str:
+    """Generate a deterministic track ID from title, artist, duration, and optional language."""
+    key = f"{title.lower().strip()}|{artist.lower().strip()}|{round(duration or 0)}|{language or 'auto'}"
     return hashlib.sha256(key.encode()).hexdigest()[:16]
 
 
@@ -54,10 +54,10 @@ class CacheManager:
         return sqlite3.connect(self.db_path)
 
     def get_cached(
-        self, title: str, artist: str, duration: float | None = None
+        self, title: str, artist: str, duration: float | None = None, language: str | None = None
     ) -> SyncResult | None:
         """Look up cached result. Returns None on miss."""
-        track_id = generate_track_id(title, artist, duration)
+        track_id = generate_track_id(title, artist, duration, language=language)
         try:
             with self._connect() as conn:
                 row = conn.execute(
@@ -88,12 +88,13 @@ class CacheManager:
             logger.exception("Cache read by ID failed for %s", track_id)
         return None
 
-    def store_result(self, result: SyncResult) -> None:
+    def store_result(self, result: SyncResult, language: str | None = None) -> None:
         """Store SyncResult in cache. Overwrites existing entry."""
         track_id = generate_track_id(
             result.track.title,
             result.track.artist,
             result.track.duration,
+            language=language,
         )
         try:
             with self._connect() as conn:

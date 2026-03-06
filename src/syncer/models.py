@@ -31,6 +31,7 @@ class SyncResult(BaseModel):
     confidence: float  # overall 0.0-1.0
     timing_source: str  # 'lrclib_synced', 'lrclib_enhanced', 'whisperx_aligned', 'whisperx_only'
     cached: bool = False
+    detected_language: str | None = None
     processing_time_seconds: float | None = None
 
 
@@ -38,3 +39,4 @@ class SyncRequest(BaseModel):
     url: str | None = None
     title: str | None = None
     artist: str | None = None
+    language: str | None = None

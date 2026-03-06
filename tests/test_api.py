@@ -143,3 +143,20 @@ def test_cache_endpoint_pipeline_not_initialized():
         client = TestClient(app, raise_server_exceptions=False)
         response = client.get("/api/cache/abc123")
         assert response.status_code == 503
+
+
+def test_sync_with_language():
+    """POST with language field threads it to SyncRequest."""
+    mock_pipeline = MagicMock()
+    result = _make_sync_result()
+    mock_pipeline.sync.return_value = result
+
+    with patch("syncer.api._pipeline", mock_pipeline):
+        client = TestClient(app, raise_server_exceptions=False)
+        response = client.post(
+            "/api/sync", json={"title": "test", "language": "hi"}
+        )
+        assert response.status_code == 200
+        # Verify the SyncRequest received by pipeline has language="hi"
+        call_args = mock_pipeline.sync.call_args[0][0]
+        assert call_args.language == "hi"

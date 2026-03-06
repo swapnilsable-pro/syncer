@@ -21,6 +21,21 @@ class AlignedWord:
     score: float = 0.0
 
 
+@dataclass
+class AlignmentResult:
+    """Result of transcription + alignment, including detected language."""
+
+    words: list[AlignedWord]
+    detected_language: str
+
+
+def _validate_language(language: str) -> None:
+    """Validate language is a 2-letter ISO 639-1 code."""
+    if not (len(language) == 2 and language.isalpha() and language.islower()):
+        raise ValueError(
+            f"Invalid language code {language!r}. Use 2-letter ISO 639-1 codes like 'hi', 'en', 'ur'."
+        )
+
 class WordAligner:
     """Transcribes audio and produces word-level timestamps using WhisperX.
 
@@ -48,26 +63,35 @@ class WordAligner:
             language_code="en", device=device
         )
 
-    def align(self, audio_path: Path) -> list[AlignedWord]:
+    def align(self, audio_path: Path, language: str | None = None) -> AlignmentResult:
         """Transcribe and align audio to produce word-level timestamps.
 
         Args:
             audio_path: Path to audio file (WAV recommended, 16kHz mono).
+            language: Optional ISO 639-1 language code (e.g. 'hi', 'en').
+                      If None, WhisperX auto-detects the language.
 
         Returns:
-            List of AlignedWord with word text, start/end times, and confidence score.
-            Returns empty list for silent/empty audio.
+            AlignmentResult with words and detected language.
+
+        Raises:
+            ValueError: If language code is invalid.
         """
+        if language is not None:
+            _validate_language(language)
+
         audio_path = Path(audio_path)
         logger.info("Transcribing: %s", audio_path)
 
         audio = whisperx.load_audio(str(audio_path))
-        result = self.model.transcribe(audio, batch_size=8)
+        result = self.model.transcribe(audio, batch_size=8, language=language)
+
+        detected_lang = result.get("language", language or "unknown")
 
         segments = result.get("segments", [])
         if not segments:
             logger.info("No segments found (silent/empty audio)")
-            return []
+            return AlignmentResult(words=[], detected_language=detected_lang)
 
         # Align for word-level timestamps
         logger.info("Aligning %d segments for word-level timestamps", len(segments))
@@ -94,4 +118,4 @@ class WordAligner:
                 )
 
         logger.info("Extracted %d words with timestamps", len(words))
-        return words
+        return AlignmentResult(words=words, detected_language=detected_lang)

@@ -1,6 +1,8 @@
 """Sync pipeline orchestrator — coordinates all sub-modules into a single sync() call."""
 
 import logging
+import re
+import tempfile
 import tempfile
 import time
 from pathlib import Path
@@ -49,13 +51,14 @@ class SyncPipeline:
             RuntimeError: If audio extraction, separation, or alignment fails.
         """
         start_time = time.time()
+        language = request.language
 
         # Step 1: Resolve input — determine title, artist, youtube URL
         track_info, youtube_url = self._resolve_input(request)
 
         # Step 2: Check cache
         cached = self.cache.get_cached(
-            track_info.title, track_info.artist, track_info.duration
+            track_info.title, track_info.artist, track_info.duration, language=language
         )
         if cached is not None:
             cached.processing_time_seconds = time.time() - start_time
@@ -126,8 +129,9 @@ class SyncPipeline:
                         timing_source="lrclib_synced",
                         cached=False,
                         processing_time_seconds=time.time() - start_time,
+                        detected_language=None,
                     )
-                    self.cache.store_result(result)
+                    self.cache.store_result(result, language=language)
                     return result
                 raise RuntimeError(f"Could not download audio: {e}") from e
 
@@ -136,6 +140,45 @@ class SyncPipeline:
                 track_info.youtube_id = audio_result.youtube_id
             if track_info.duration == 0.0 and audio_result.duration > 0:
                 track_info.duration = audio_result.duration
+
+            # If title was unknown (YouTube URL without metadata), extract from yt-dlp
+            if track_info.title == "Unknown" and audio_result.title != "Unknown":
+                parsed_title, parsed_artist = SyncPipeline._parse_video_title(
+                    audio_result.title
+                )
+                track_info.title = parsed_title
+                if track_info.artist == "Unknown" and parsed_artist:
+                    track_info.artist = parsed_artist
+
+                # Re-attempt LRCLIB fetch with real metadata
+                logger.info(
+                    "Extracted metadata from YouTube: %s - %s, retrying LRCLIB",
+                    track_info.title,
+                    track_info.artist,
+                )
+                try:
+                    lrclib_result = fetch_lyrics(
+                        track_info.title, track_info.artist, track_info.duration
+                    )
+                    if lrclib_result is not None:
+                        if lrclib_result.synced_lyrics:
+                            lyrics_lines = parse_lrc(lrclib_result.synced_lyrics)
+                            if lyrics_lines:
+                                timing_source = "lrclib_synced"
+                                plain_lyrics_text = [line.text for line in lyrics_lines]
+                        if plain_lyrics_text is None and lrclib_result.plain_lyrics:
+                            plain_lyrics_text = [
+                                line.strip()
+                                for line in lrclib_result.plain_lyrics.strip().split("\n")
+                                if line.strip()
+                            ]
+                            timing_source = "lrclib_enhanced"
+                except Exception:
+                    logger.warning(
+                        "LRCLIB retry failed for %s - %s",
+                        track_info.title,
+                        track_info.artist,
+                    )
 
             # Step 5: Vocal isolation
             try:
@@ -147,11 +190,13 @@ class SyncPipeline:
 
             # Step 6: Word alignment
             try:
-                asr_words = self.aligner.align(vocals_path)
+                alignment_result = self.aligner.align(vocals_path, language=language)
             except Exception as e:
                 raise RuntimeError(f"Alignment failed: {e}") from e
 
             # Step 7: Snap to lyrics
+            asr_words = alignment_result.words
+            detected_language = alignment_result.detected_language
             if plain_lyrics_text:
                 synced_lines = snap_words_to_lyrics(asr_words, plain_lyrics_text)
                 # Keep timing_source from step 3 (lrclib_synced or lrclib_enhanced)
@@ -165,6 +210,7 @@ class SyncPipeline:
                 synced_lines = []
                 timing_source = "whisperx_only"
 
+
         # Step 8: Build result
         result = SyncResult(
             track=track_info,
@@ -173,10 +219,11 @@ class SyncPipeline:
             timing_source=timing_source,
             cached=False,
             processing_time_seconds=time.time() - start_time,
+            detected_language=detected_language,
         )
 
         # Step 9: Cache result
-        self.cache.store_result(result)
+        self.cache.store_result(result, language=language)
 
         return result
 
@@ -290,3 +337,37 @@ class SyncPipeline:
             )
 
         return lines
+
+    @staticmethod
+    def _parse_video_title(video_title: str) -> tuple[str, str | None]:
+        """Parse YouTube video title into (title, artist)."""
+        # Common formats: "Artist - Title", "Artist - Title (Official Video)", etc.
+        # Strip common suffixes first
+        cleaned = video_title.strip()
+        cleaned = video_title.strip()
+        # Remove common YouTube suffixes
+        suffixes = [
+            r"\s*\(Official\s*(Music\s*)?Video\)",
+            r"\s*\(Official\s*Audio\)",
+            r"\s*\(Lyric\s*Video\)",
+            r"\s*\(Lyrics\)",
+            r"\s*\[Official\s*(Music\s*)?Video\]",
+            r"\s*\[Official\s*Audio\]",
+            r"\s*\(HD\)",
+            r"\s*\(HQ\)",
+            r"\s*\|.*$",
+        ]
+        for suffix in suffixes:
+            cleaned = re.sub(suffix, "", cleaned, flags=re.IGNORECASE)
+        cleaned = cleaned.strip()
+
+        # Try "Artist - Title" split
+        if " - " in cleaned:
+            parts = cleaned.split(" - ", 1)
+            artist = parts[0].strip()
+            title = parts[1].strip()
+            if artist and title:
+                return title, artist
+
+        # No separator found — use whole string as title
+        return cleaned, None

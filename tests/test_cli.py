@@ -256,3 +256,52 @@ class TestWhitespaceHandling:
         assert result == 0
         call_args = mock_pipeline.sync.call_args[0][0]
         assert call_args.title == "Yesterday"
+
+
+class TestLanguageFlag:
+    """Test --language flag."""
+
+    def test_language_flag(self, capsys):
+        """--language flag is threaded to SyncRequest."""
+        mock_pipeline = MagicMock()
+        mock_result = MagicMock()
+        mock_result.model_dump_json.return_value = '{"lines": []}'
+        mock_pipeline.sync.return_value = mock_result
+
+        with patch("sys.argv", ["syncer", "--language", "hi", "test query"]):
+            with patch("syncer.__main__.SyncPipeline", return_value=mock_pipeline):
+                result = main()
+
+        assert result == 0
+        call_args = mock_pipeline.sync.call_args[0][0]
+        assert call_args.language == "hi"
+
+    def test_short_language_flag(self, capsys):
+        """Short -l flag should work."""
+        mock_pipeline = MagicMock()
+        mock_result = MagicMock()
+        mock_result.model_dump_json.return_value = '{"lines": []}'
+        mock_pipeline.sync.return_value = mock_result
+
+        with patch("sys.argv", ["syncer", "-l", "en", "test query"]):
+            with patch("syncer.__main__.SyncPipeline", return_value=mock_pipeline):
+                result = main()
+
+        assert result == 0
+        call_args = mock_pipeline.sync.call_args[0][0]
+        assert call_args.language == "en"
+
+    def test_no_language_flag_defaults_to_none(self, capsys):
+        """No --language flag means language=None."""
+        mock_pipeline = MagicMock()
+        mock_result = MagicMock()
+        mock_result.model_dump_json.return_value = '{"lines": []}'
+        mock_pipeline.sync.return_value = mock_result
+
+        with patch("sys.argv", ["syncer", "test query"]):
+            with patch("syncer.__main__.SyncPipeline", return_value=mock_pipeline):
+                result = main()
+
+        assert result == 0
+        call_args = mock_pipeline.sync.call_args[0][0]
+        assert call_args.language is None

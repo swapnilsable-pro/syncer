@@ -22,6 +22,11 @@ def main() -> int:
         action="store_true",
         help="Enable verbose logging",
     )
+    parser.add_argument(
+        "--language", "-l",
+        default=None,
+        help="Force language code (ISO 639-1, e.g. 'hi' for Hindi, 'en' for English). Default: auto-detect.",
+    )
     
     args = parser.parse_args()
     
@@ -40,16 +45,16 @@ def main() -> int:
     
     # Detect input type
     if "youtube.com" in query or "youtu.be" in query:
-        request = SyncRequest(url=query)
+        request = SyncRequest(url=query, language=args.language)
     elif "spotify.com" in query or query.startswith("spotify:"):
-        request = SyncRequest(url=query)
+        request = SyncRequest(url=query, language=args.language)
     else:
         # Title/artist query — try to split on " - " for "Artist - Title" format
         if " - " in query:
             parts = query.split(" - ", 1)
-            request = SyncRequest(title=parts[1].strip(), artist=parts[0].strip())
+            request = SyncRequest(title=parts[1].strip(), artist=parts[0].strip(), language=args.language)
         else:
-            request = SyncRequest(title=query)
+            request = SyncRequest(title=query, language=args.language)
     
     try:
         settings = Settings()
