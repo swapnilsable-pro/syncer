@@ -115,7 +115,7 @@ Wave FINAL (After Task 1):
 
 ## TODOs
 
-- [ ] 1. Add language parameter through entire pipeline
+- [x] 1. Add language parameter through entire pipeline
 
   **What to do**:
   
@@ -305,7 +305,7 @@ Wave FINAL (After Task 1):
 
 ## Final Verification Wave
 
-- [ ] F1. **Regression + Smoke Check** — `quick`
+- [x] F1. **Regression + Smoke Check** — `quick`
   Run `.venv/bin/python -m pytest tests/ --ignore=tests/test_smoke.py --ignore=tests/test_e2e.py -q`. Verify 175+ passed (170 existing + 5+ new), 0 failed. Run `.venv/bin/python -m syncer --help` and verify `--language` appears. Run `python -c "from syncer.models import SyncRequest; print(SyncRequest(title='test', language='hi').language)"` and verify output is `hi`.
   Output: `Tests [PASS/FAIL] | CLI flag [PRESENT/MISSING] | Model field [WORKS/BROKEN] | VERDICT`
 
