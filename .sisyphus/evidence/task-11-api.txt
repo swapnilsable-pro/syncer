@@ -1,0 +1,31 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.8, pytest-9.0.2, pluggy-1.6.0 -- /Users/swapnil/project/syncer/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/swapnil/project/syncer
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 10 items
+
+tests/test_api.py::test_health_pipeline_loaded PASSED                    [ 10%]
+tests/test_api.py::test_health_pipeline_not_loaded PASSED                [ 20%]
+tests/test_api.py::test_sync_endpoint_success PASSED                     [ 30%]
+tests/test_api.py::test_sync_endpoint_with_url PASSED                    [ 40%]
+tests/test_api.py::test_sync_endpoint_value_error PASSED                 [ 50%]
+tests/test_api.py::test_sync_endpoint_runtime_error PASSED               [ 60%]
+tests/test_api.py::test_sync_endpoint_pipeline_not_initialized PASSED    [ 70%]
+tests/test_api.py::test_cache_endpoint_found PASSED                      [ 80%]
+tests/test_api.py::test_cache_endpoint_not_found PASSED                  [ 90%]
+tests/test_api.py::test_cache_endpoint_pipeline_not_initialized PASSED   [100%]
+
+============================== 10 passed in 1.09s ==============================
+--- Files Created ---
+src/syncer/api.py
+tests/test_api.py
+
+--- Endpoints ---
+GET  /health           -> {status: ok, models_loaded: bool}
+POST /api/sync         -> SyncResult (422 on ValueError, 500 on RuntimeError, 503 if not init)
+GET  /api/cache/{id}   -> SyncResult (404 if not found, 503 if not init)
+
+--- Test Count: 10 tests, all passing ---

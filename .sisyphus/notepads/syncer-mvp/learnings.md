@@ -324,3 +324,86 @@
 - Patch targets use pipeline module path (e.g., `syncer.pipeline.fetch_lyrics` not `syncer.clients.lrclib.fetch_lyrics`)
 - Cache hit test uses direct CacheManager pre-population (not two pipeline calls) to avoid duration key mismatch
 - Dataclass fakes (FakeAudioResult, FakeAlignedWord, FakeLrcLibResult) avoid importing real heavy dependencies
+
+# Task 12: CLI Interface
+
+## argparse Design
+- `ArgumentParser(prog="python -m syncer")` sets the program name in help output
+- Positional arguments use `add_argument("query", help="...")` (no dashes)
+- Optional flags use `add_argument("--verbose", "-v", action="store_true")`
+- `parser.parse_args()` automatically handles --help and exits with code 0
+
+## Input Detection Strategy
+- Check for URL patterns first: "youtube.com", "youtu.be", "spotify.com", "spotify:"
+- Fall back to title/artist parsing: split on " - " (space-dash-space)
+- If no " - ", treat entire query as title only
+- All fields in SyncRequest are optional, so flexible input works well
+
+## Output Design
+- JSON to stdout via `result.model_dump_json(indent=2)` — allows piping to `jq`
+- Logging to stderr via `logging.basicConfig(stream=sys.stderr)` — keeps stdout clean
+- Logging level controlled by --verbose flag (DEBUG vs WARNING)
+
+## Error Handling
+- Empty query: print to stderr, return 1
+- ValueError/RuntimeError from pipeline: print error message to stderr, return 1
+- KeyboardInterrupt (Ctrl+C): print "Interrupted" to stderr, return 130 (standard Unix code)
+- All exceptions caught and handled gracefully (no stack traces to user)
+
+## Testing Strategy
+- Mock entire SyncPipeline to avoid network/ML dependencies
+- Use `patch("sys.argv", [...])` to simulate command-line arguments
+- Use `capsys` fixture to capture stdout/stderr
+- Test both happy path and error cases
+- 15 tests covering: help, empty query, URL detection, title/artist split, errors, output, logging, whitespace
+
+## Test Coverage
+- URL detection: YouTube (both formats), Spotify (both formats)
+- Query parsing: title/artist split, title-only, multiple dashes
+- Error handling: ValueError, RuntimeError
+- Output: JSON to stdout, no errors on stderr
+- Logging: verbose flag, short flag
+- Edge cases: whitespace stripping, empty query
+
+## Key Gotchas Avoided
+- ❌ Did NOT use Click or Typer (argparse is stdlib)
+- ❌ Did NOT add interactive mode or progress bars
+- ❌ Did NOT add config file loading
+- ❌ Did NOT add multiple output formats (JSON only)
+- ✅ Used argparse for simplicity
+- ✅ Kept stdout clean for JSON piping
+- ✅ Logged to stderr for debugging
+- ✅ Handled all error cases gracefully
+- ✅ Made URL detection robust (multiple formats)
+- ✅ Made title/artist parsing flexible (optional split)
+
+## Test Results
+- 15/15 tests passing in 1.22s
+- All code paths covered
+- No external dependencies (mocked)
+- Ready for integration with real pipeline
+
+# Task 11: FastAPI REST API
+
+## FastAPI Lifespan Pattern
+- Use `@asynccontextmanager` + `lifespan` parameter (NOT deprecated `@app.on_event`)
+- Global `_pipeline` variable initialized in lifespan, set to None on shutdown
+- `models_loaded` in health check simply checks `_pipeline is not None`
+
+## TestClient with Lifespan
+- `TestClient(app)` triggers lifespan by default → would load real ML models
+- Solution: `patch("syncer.api._pipeline", mock)` bypasses lifespan entirely
+- `raise_server_exceptions=False` prevents TestClient from re-raising HTTPExceptions
+- Creating TestClient inside `with patch(...)` block ensures mock is active for all requests
+
+## Error Mapping
+- `ValueError` → 422 (Unprocessable Entity) — invalid input
+- `RuntimeError` → 500 (Internal Server Error) — pipeline failure
+- Cache miss → 404 (Not Found)
+- Pipeline not initialized → 503 (Service Unavailable)
+
+## Testing Strategy
+- 10 tests, all with mocked pipeline (no network, no ML models)
+- Real `SyncResult` objects used (not MagicMock) for response serialization
+- `_make_sync_result()` helper for clean test data construction
+- Tested both happy paths and all error paths for each endpoint
