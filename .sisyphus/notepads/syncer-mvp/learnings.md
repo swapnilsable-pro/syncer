@@ -296,3 +296,31 @@
 ## Test Coverage
 - 19 tests: perfect alignment, case-insensitive, fuzzy match, threshold, empty inputs, multiline, single word, interpolation, extra ASR words, confidence variants, text/order preservation
 - All tests are pure Python — no network, no ML models, runs in 0.09s
+
+# Task 10: Sync Pipeline Orchestrator
+
+## Pipeline Architecture
+- 9-step sequential pipeline: resolve → cache check → LRCLIB → audio extract → Demucs → WhisperX → snap → build result → cache store
+- `SyncPipeline.__init__` eagerly creates CacheManager, VocalSeparator, WordAligner
+- `sync(request)` is the single entry point — all orchestration logic lives here
+- `_resolve_input()` handles URL parsing (Spotify/YouTube) and title/artist fallback
+- `_lines_from_asr()` static method builds SyncedLines from raw ASR words (no lyrics path)
+
+## Key Design Decisions
+- `tempfile.TemporaryDirectory()` as context manager wraps steps 4-7 (audio extraction through snap)
+- Audio extraction failure with synced lyrics → return LRCLIB lyrics without word timestamps (graceful degradation)
+- `search_youtube()` returns URL string (not AudioResult) — need `extract_audio()` after search
+- `resolve_spotify_url()` takes `client_id` and `client_secret` as positional params (not from settings directly)
+- Timing source tracks provenance: lrclib_synced → lrclib_enhanced (when alignment adds word timestamps)
+
+## Cache Key Gotcha
+- Cache key = SHA256(title|artist|duration) — duration=0.0 for title/artist-only requests
+- After audio extraction, duration gets updated to actual value → stored result has different key than lookup
+- This means title/artist requests without pre-known duration won't cache-hit on repeat calls (acceptable for MVP)
+- Fix: provide duration in request, or accept first-call always misses cache for title-only queries
+
+## Testing Strategy
+- 11 tests, all with mocked sub-modules (no network, no ML models)
+- Patch targets use pipeline module path (e.g., `syncer.pipeline.fetch_lyrics` not `syncer.clients.lrclib.fetch_lyrics`)
+- Cache hit test uses direct CacheManager pre-population (not two pipeline calls) to avoid duration key mismatch
+- Dataclass fakes (FakeAudioResult, FakeAlignedWord, FakeLrcLibResult) avoid importing real heavy dependencies
