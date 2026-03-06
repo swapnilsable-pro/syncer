@@ -407,3 +407,21 @@
 - Real `SyncResult` objects used (not MagicMock) for response serialization
 - `_make_sync_result()` helper for clean test data construction
 - Tested both happy paths and all error paths for each endpoint
+
+# Task 13: End-to-End Tests with 5 Reference Songs
+
+## Test Architecture
+- Shared fixtures (pipeline, test_client) in conftest.py with `scope="module"` — one expensive init per module
+- All 9 tests marked `@pytest.mark.slow` — deselect with `-m "not slow"` in fast CI
+- pyproject.toml already registers `slow` and `integration` markers — no need to duplicate in conftest.py
+
+## E2E Test Design
+- 5 reference songs cover different genres: classic pop (Yesterday), modern pop (Shake It Off), known URL (Rick Astley), rap (Lose Yourself), complex structure (Bohemian Rhapsody)
+- Cache test depends on Yesterday running first (same module, deterministic order)
+- Error tests verify ValueError for empty/invalid input without needing network
+- API test uses TestClient with real lifespan (loads ML models) — true end-to-end
+
+## Key Observations
+- `SyncRequest()` with all-None fields is valid Pydantic but raises ValueError in pipeline._resolve_input()
+- Invalid URL (not YouTube/Spotify) raises ValueError("Unsupported URL format: ...") in _resolve_input
+- TestClient(app) triggers lifespan → real SyncPipeline init — appropriate for e2e, not for unit tests
