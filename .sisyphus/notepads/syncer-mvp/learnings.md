@@ -215,3 +215,84 @@
 - **Lookup**: O(1) primary key lookup on `track_id`
 - **Storage**: ~1-2KB per SyncResult (JSON + metadata)
 - **Scalability**: SQLite suitable for ~100k tracks (MVP scope)
+
+# Task 7: Demucs Vocal Isolation Module
+
+## VocalSeparator Implementation
+- Lazy model loading: `_load_model()` only called on first `separate()` call
+- Mono-to-stereo conversion needed: `waveform.repeat(2, 1)` — htdemucs expects 2 channels
+- Normalization: `(waveform - ref.mean()) / ref.std()` where `ref = waveform.mean(0)`
+- `apply_model()` returns shape `(batch, sources=4, channels=2, time)` — vocals at index 3
+- Memory cleanup in `finally` block: `del model, sources` + `gc.collect()` + `self._model = None`
+- Output is always stereo at 44100 Hz regardless of input format
+
+## Testing Strategy
+- 13 fast unit tests with mocked model (~1s total)
+- 1 slow integration test with real Demucs model (~15-30s) marked `@pytest.mark.slow`
+- Synthetic audio: `torch.sin(2 * pi * 440 * t)` — no network needed
+- Mock pattern: patch both `get_model` and `apply_model`, return `torch.randn(1, 4, 2, sr*duration)` as fake sources
+- Test both success and error paths (FileNotFoundError, OOM, generic RuntimeError)
+- Verify memory cleanup happens on both success and failure paths
+
+# Task 8: WhisperX Word Alignment Module
+
+## WordAligner Implementation
+- Two-stage pipeline: transcribe (faster-whisper) → align (wav2vec2) for word-level timestamps
+- Both models loaded eagerly in `__init__` (not lazy) — alignment model needed alongside transcription model
+- `compute_type="float32"` mandatory for CPU/MPS — "float16" crashes
+- `batch_size=8` for CPU (lower than default 16 to avoid memory issues)
+- Memory cleanup: `gc.collect()` + `torch.cuda.empty_cache()` after alignment
+- Early return on empty segments: skip `whisperx.align()` entirely when no speech detected
+
+## AlignedWord Dataclass
+- Plain `@dataclass` (not Pydantic) — simpler for this internal data structure
+- `score` field defaults to 0.0 — some words from WhisperX lack this field
+- `start` and `end` also default to 0.0 via `.get()` for robustness
+
+## WhisperX API Details
+- `whisperx.load_audio(str(path))` — requires string path, not Path object
+- `model.transcribe(audio, batch_size=8)` returns `{"segments": [...]}`
+- `whisperx.align(segments, align_model, align_metadata, audio, device)` adds word timestamps
+- Word format: `{"word": str, "start": float, "end": float, "score": float}` — score may be absent
+
+## Testing Strategy
+- 12 fast unit tests with fully mocked whisperx (~0.8s total)
+- 1 slow integration test on silent audio marked `@pytest.mark.slow`
+- Class-level `@patch("syncer.alignment.whisperx_aligner.whisperx")` — patches the module-level import
+- Helper `_setup_mocks()` method reduces test boilerplate
+- Coverage: normal words, missing score, empty segments, missing segments key, multi-segment, segments without words, missing start/end, API call verification, string path acceptance
+
+# Task 9: Snap-to-Lyrics Text Matching + Confidence Scoring
+
+## Smith-Waterman DP Alignment
+- Smith-Waterman (local alignment) better than Needleman-Wunsch (global) for this use case
+  - ASR often has extra filler words (oh, yeah, uh) not in lyrics
+  - Local alignment naturally skips unmatched ASR words
+- Score matrix: +2 exact (case-insensitive), +1 fuzzy (Levenshtein ratio > 0.7), -1 mismatch, -1 gap
+- Traceback from max score position, not from (n,m) corner
+
+## Levenshtein Matching
+- `Levenshtein.ratio()` returns 0.0-1.0; threshold of 0.7 works well for ASR errors
+- Common ASR errors: dropped letters ("helo"→"hello"), merged words, substitutions
+- Case-insensitive comparison essential — ASR capitalizes inconsistently
+
+## Timestamp Interpolation
+- Matched words get ASR timestamps directly (confidence = ASR score)
+- Unmatched words get linearly interpolated timestamps (confidence = 0.3)
+- Three interpolation cases: before first match, between matches, after last match
+- Even distribution within gap works well enough for lyrics display
+
+## Confidence Scoring
+- Per-line confidence = average of word confidences
+- Overall = weighted average by word count (longer lines count more)
+- Typical values: perfect match ~0.9+, fuzzy ~0.85, with interpolation ~0.7, empty ASR = 0.0
+
+## Design Decisions
+- Defined `AlignedWord` dataclass locally in snap.py (whisperx_aligner.py is still a stub)
+- No abstract classes, no inheritance — plain functions
+- `_flatten_lyrics()` converts lines to flat word list with position metadata for DP
+- Grouping back to lines after alignment preserves original line structure
+
+## Test Coverage
+- 19 tests: perfect alignment, case-insensitive, fuzzy match, threshold, empty inputs, multiline, single word, interpolation, extra ASR words, confidence variants, text/order preservation
+- All tests are pure Python — no network, no ML models, runs in 0.09s

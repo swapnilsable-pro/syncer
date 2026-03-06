@@ -1,0 +1,38 @@
+=== Task 9: Snap-to-Lyrics Text Matching + Confidence Scoring ===
+
+--- Test 1: Perfect Alignment ---
+  Line: "hello world" [1.00-2.00]
+    Word: "hello" [1.00-1.50] conf=0.95
+    Word: "world" [1.60-2.00] conf=0.90
+  Overall confidence: 0.925
+
+--- Test 2: Fuzzy Match ---
+  Line: "hello world" [1.00-2.00]
+    Word: "hello" [1.00-1.50] conf=0.80
+    Word: "world" [1.60-2.00] conf=0.90
+  Overall confidence: 0.850
+
+--- Test 3: Multiline (Rick Astley) ---
+  Line: "never gonna" [1.00-1.70]
+    Word: "never" [1.00-1.30] conf=0.90
+    Word: "gonna" [1.40-1.70] conf=0.90
+  Line: "give you up" [2.00-3.00]
+    Word: "give" [2.00-2.30] conf=0.90
+    Word: "you" [2.40-2.60] conf=0.90
+    Word: "up" [2.70-3.00] conf=0.90
+  Overall confidence: 0.900
+
+--- Test 4: Empty ASR ---
+  Line: "hello world" [0.00-0.00]
+    Word: "hello" [0.00-0.00] conf=0.00
+    Word: "world" [0.00-0.00] conf=0.00
+  Overall confidence: 0.000
+
+--- Test 5: Interpolation (missing middle word) ---
+  Line: "hello beautiful world" [1.00-3.50]
+    Word: "hello" [1.00-1.50] conf=0.90
+    Word: "beautiful" [2.25-3.00] conf=0.30
+    Word: "world" [3.00-3.50] conf=0.90
+  Overall confidence: 0.700
+
+=== pytest results: 19/19 passed ===

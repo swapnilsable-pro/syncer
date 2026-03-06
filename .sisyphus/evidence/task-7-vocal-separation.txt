@@ -1,0 +1,50 @@
+Task 7: Demucs Vocal Isolation Module — Evidence
+=================================================
+Date: 2026-03-07
+
+## Files Created
+- src/syncer/alignment/demucs_separator.py (VocalSeparator class)
+- tests/test_demucs.py (13 unit tests + 1 slow integration test)
+
+## VocalSeparator Class
+- __init__(model_name="htdemucs") — lazy model loading
+- separate(audio_path, output_dir) -> Path — returns path to vocals.wav
+- Uses demucs.pretrained.get_model + demucs.apply.apply_model (NOT demucs.api.Separator)
+- Memory cleanup in finally block (del model, sources + gc.collect())
+- Error handling: FileNotFoundError, OOM RuntimeError, generic RuntimeError
+
+## Unit Test Results (13 passed, 1 slow deselected)
+$ .venv/bin/pytest tests/test_demucs.py -v -m "not slow"
+tests/test_demucs.py::TestVocalSeparatorInit::test_default_model_name PASSED
+tests/test_demucs.py::TestVocalSeparatorInit::test_custom_model_name PASSED
+tests/test_demucs.py::TestVocalSeparatorInit::test_model_not_loaded_on_init PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_file_not_found PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_creates_output_dir PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_returns_vocals_path PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_vocals_wav_is_valid PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_resamples_non_44100_input PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_handles_stereo_input PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_runtime_error_on_model_failure PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_runtime_error_generic PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_memory_cleanup_after_success PASSED
+tests/test_demucs.py::TestVocalSeparatorSeparate::test_memory_cleanup_after_error PASSED
+================ 13 passed, 1 deselected, 18 warnings in 1.15s =================
+
+## Smoke Test (Real Demucs Model)
+VocalSeparator created: model_name=htdemucs
+Model loaded on init: False
+Synthetic WAV created: test.wav (torch.Size([1, 132300]))
+Separation result: output/vocals.wav
+File exists: True
+Vocals shape: torch.Size([2, 132300]), sample_rate: 44100
+Vocals duration: 3.00s
+Memory cleanup: model is None = True
+=== ALL SMOKE TESTS PASSED ===
+
+## Test Coverage
+- Init: default model, custom model, lazy loading
+- Separation: file not found, output dir creation, returns correct path, valid WAV output
+- Audio: resampling, stereo input handling
+- Errors: OOM detection, generic RuntimeError wrapping
+- Cleanup: model cleared after success, model cleared after error
+- Integration: real Demucs separation on synthetic audio (marked @pytest.mark.slow)

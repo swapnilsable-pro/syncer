@@ -1,0 +1,40 @@
+Task 8: WhisperX Word Alignment Module
+=======================================
+Date: 2026-03-07
+
+Files Created:
+- src/syncer/alignment/whisperx_aligner.py (98 lines)
+- tests/test_whisperx_aligner.py (247 lines)
+
+Classes:
+- AlignedWord (dataclass): word, start, end, score (defaults 0.0)
+- WordAligner: __init__(model_name, device, compute_type), align(audio_path) -> list[AlignedWord]
+
+Test Results (12 passed, 1 slow deselected):
+- TestAlignedWord::test_create_with_all_fields PASSED
+- TestAlignedWord::test_score_defaults_to_zero PASSED
+- TestAlignedWord::test_is_dataclass PASSED
+- TestWordAligner::test_align_returns_words PASSED
+- TestWordAligner::test_align_empty_segments PASSED
+- TestWordAligner::test_align_missing_segments_key PASSED
+- TestWordAligner::test_align_multi_segment PASSED
+- TestWordAligner::test_align_segment_without_words PASSED
+- TestWordAligner::test_align_missing_start_end PASSED
+- TestWordAligner::test_init_loads_models PASSED
+- TestWordAligner::test_align_calls_whisperx_correctly PASSED
+- TestWordAligner::test_accepts_path_as_string PASSED
+- test_real_whisperx_silent_audio DESELECTED (marked @pytest.mark.slow)
+
+Key Design Decisions:
+- AlignedWord is a plain dataclass (not Pydantic) per task spec
+- compute_type="float32" mandatory for CPU/MPS
+- batch_size=8 for CPU (lower than default 16)
+- Missing score defaults to 0.0 via dict.get()
+- Empty segments short-circuit before calling whisperx.align()
+- gc.collect() + torch.cuda.empty_cache() after alignment
+- All whisperx calls mocked in unit tests for speed
+- Real model test marked @pytest.mark.slow
+
+Verification:
+$ .venv/bin/pytest tests/test_whisperx_aligner.py -v -m "not slow"
+================= 12 passed, 1 deselected, 8 warnings in 0.84s =================
