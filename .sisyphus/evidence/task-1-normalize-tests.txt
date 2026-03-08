@@ -1,0 +1,40 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.8, pytest-9.0.2, pluggy-1.6.0 -- /Users/swapnil/project/syncer/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/swapnil/project/syncer
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 29 items
+
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_basic_lowercase PASSED [  3%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_apostrophe_preserved PASSED [  6%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_digit_only_word_stripped PASSED [ 10%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_punctuation_stripped PASSED [ 13%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_empty_string PASSED [ 17%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_whitespace_only PASSED [ 20%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_digits_stripped_from_mixed_word PASSED [ 24%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_hyphen_preserved PASSED [ 27%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_all_punctuation_line PASSED [ 31%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_comma_and_period_stripped PASSED [ 34%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_apostrophe_in_sentence PASSED [ 37%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_tabs_and_newlines PASSED [ 41%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_multiple_spaces PASSED [ 44%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_only_digits PASSED [ 48%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_mixed_punctuation_and_words PASSED [ 51%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_unicode_accented_latin PASSED [ 55%]
+tests/test_text_normalize.py::TestNormalizeForAlignment::test_returns_list_of_strings PASSED [ 58%]
+tests/test_text_normalize.py::TestRomanize::test_latin_text_unchanged PASSED [ 62%]
+tests/test_text_normalize.py::TestRomanize::test_empty_string PASSED     [ 65%]
+tests/test_text_normalize.py::TestRomanize::test_uppercase_passthrough PASSED [ 68%]
+tests/test_text_normalize.py::TestRomanize::test_already_ascii PASSED    [ 72%]
+tests/test_text_normalize.py::TestRomanize::test_mixed_ascii PASSED      [ 75%]
+tests/test_text_normalize.py::TestRomanize::test_hindi_if_uroman_available PASSED [ 79%]
+tests/test_text_normalize.py::TestRomanize::test_no_crash_on_non_latin PASSED [ 82%]
+tests/test_text_normalize.py::TestRomanize::test_no_crash_on_cyrillic PASSED [ 86%]
+tests/test_text_normalize.py::TestRomanize::test_no_crash_on_arabic PASSED [ 89%]
+tests/test_text_normalize.py::TestRomanizeFallback::test_fallback_returns_original_text PASSED [ 93%]
+tests/test_text_normalize.py::TestRomanizeFallback::test_fallback_no_crash PASSED [ 96%]
+tests/test_text_normalize.py::TestNormalizeWithRomanize::test_normalize_calls_romanize PASSED [100%]
+
+============================== 29 passed in 1.90s ==============================

@@ -40,3 +40,14 @@ class SyncRequest(BaseModel):
     title: str | None = None
     artist: str | None = None
     language: str | None = None
+
+
+class TrackSummary(BaseModel):
+    """Lightweight track info for listing all processed songs."""
+    track_id: str
+    title: str
+    artist: str
+    duration: float
+    confidence: float | None = None
+    timing_source: str | None = None
+    created_at: str | None = None

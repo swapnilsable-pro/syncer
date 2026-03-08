@@ -3,13 +3,12 @@
 import logging
 import re
 import tempfile
-import tempfile
 import time
 from pathlib import Path
 
+from syncer.alignment.ctc_aligner import CTCAligner
+from syncer.alignment.text_normalize import normalize_for_alignment
 from syncer.alignment.demucs_separator import VocalSeparator
-from syncer.alignment.whisperx_aligner import WordAligner
-from syncer.alignment.snap import snap_words_to_lyrics
 from syncer.alignment import compute_confidence
 from syncer.cache import CacheManager
 from syncer.clients.lrclib import fetch_lyrics, parse_lrc
@@ -21,21 +20,65 @@ from syncer.models import SyncRequest, SyncResult, SyncedLine, SyncedWord, Track
 logger = logging.getLogger(__name__)
 
 
+def _build_synced_lines(
+    plain_lyrics_text: list[str],
+    lyrics_lines: list[SyncedLine] | None,
+    aligned_words: list,
+    word_counts: list[int],
+) -> list[SyncedLine]:
+    """Group flat CTC-aligned words back into SyncedLines by original lyric line."""
+    synced_lines = []
+    word_idx = 0
+
+    for i, (line_text, count) in enumerate(zip(plain_lyrics_text, word_counts)):
+        line_aligned = aligned_words[word_idx : word_idx + count]
+        word_idx += count
+
+        synced_words = [
+            SyncedWord(
+                text=w.word,
+                start=w.start,
+                end=w.end,
+                confidence=w.score,
+            )
+            for w in line_aligned
+        ]
+
+        if synced_words:
+            line_start = synced_words[0].start
+            line_end = synced_words[-1].end
+        elif lyrics_lines is not None and i < len(lyrics_lines):
+            # Fall back to LRCLIB line timestamps if available
+            line_start = lyrics_lines[i].start
+            line_end = lyrics_lines[i].end
+        else:
+            line_start = 0.0
+            line_end = 0.0
+
+        synced_lines.append(
+            SyncedLine(
+                text=line_text,
+                start=line_start,
+                end=line_end,
+                words=synced_words,
+            )
+        )
+
+    return synced_lines
+
+
 class SyncPipeline:
     """Orchestrates the full lyrics sync pipeline.
 
     Steps: resolve input → check cache → fetch lyrics → extract audio →
-    vocal isolation → word alignment → snap to lyrics → build result → cache.
+    vocal isolation → CTC alignment → build result → cache.
     """
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.cache = CacheManager(settings.db_path)
         self.separator = VocalSeparator(settings.demucs_model)
-        self.aligner = WordAligner(
-            settings.ctc_model,
-            settings.ctc_device,
-        )
+        self.aligner = CTCAligner(device=settings.ctc_device)
 
     def sync(self, request: SyncRequest) -> SyncResult:
         """Run the full sync pipeline for a single track.
@@ -67,7 +110,7 @@ class SyncPipeline:
         # Step 3: Fetch lyrics from LRCLIB
         lyrics_lines: list[SyncedLine] | None = None
         plain_lyrics_text: list[str] | None = None
-        timing_source = "whisperx_only"
+        timing_source = "ctc_aligned"
 
         try:
             lrclib_result = fetch_lyrics(
@@ -78,7 +121,6 @@ class SyncPipeline:
                     lyrics_lines = parse_lrc(lrclib_result.synced_lyrics)
                     if lyrics_lines:
                         timing_source = "lrclib_synced"
-                        # Also extract plain text for snap alignment
                         plain_lyrics_text = [line.text for line in lyrics_lines]
                 if plain_lyrics_text is None and lrclib_result.plain_lyrics:
                     plain_lyrics_text = [
@@ -86,13 +128,26 @@ class SyncPipeline:
                         for line in lrclib_result.plain_lyrics.strip().split("\n")
                         if line.strip()
                     ]
-                    timing_source = "lrclib_enhanced"
         except Exception:
             logger.warning(
                 "LRCLIB fetch failed for %s - %s, proceeding without lyrics",
                 track_info.title,
                 track_info.artist,
             )
+
+        # Graceful skip: no lyrics from LRCLIB → return immediately
+        if plain_lyrics_text is None:
+            result = SyncResult(
+                track=track_info,
+                lines=[],
+                confidence=0.0,
+                timing_source="no_lyrics",
+                cached=False,
+                processing_time_seconds=time.time() - start_time,
+                detected_language=None,
+            )
+            self.cache.store_result(result, language=language)
+            return result
 
         # Step 4: Audio extraction
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -109,9 +164,7 @@ class SyncPipeline:
                     query = f"{track_info.title} {track_info.artist}"
                     yt_url = search_youtube(query)
                     if yt_url is None:
-                        raise RuntimeError(
-                            f"Could not find audio for: {query}"
-                        )
+                        raise RuntimeError(f"Could not find audio for: {query}")
                     audio_result = extract_audio(
                         yt_url, temp_dir, self.settings.max_song_duration
                     )
@@ -169,10 +222,11 @@ class SyncPipeline:
                         if plain_lyrics_text is None and lrclib_result.plain_lyrics:
                             plain_lyrics_text = [
                                 line.strip()
-                                for line in lrclib_result.plain_lyrics.strip().split("\n")
+                                for line in lrclib_result.plain_lyrics.strip().split(
+                                    "\n"
+                                )
                                 if line.strip()
                             ]
-                            timing_source = "lrclib_enhanced"
                 except Exception:
                     logger.warning(
                         "LRCLIB retry failed for %s - %s",
@@ -182,36 +236,34 @@ class SyncPipeline:
 
             # Step 5: Vocal isolation
             try:
-                vocals_path = self.separator.separate(
-                    audio_result.audio_path, temp_dir
-                )
+                vocals_path = self.separator.separate(audio_result.audio_path, temp_dir)
             except Exception as e:
                 raise RuntimeError(f"Vocal separation failed: {e}") from e
 
-            # Step 6: Word alignment
+            # Step 6: Compute per-line word counts
+            word_counts = [
+                len(normalize_for_alignment(line)) for line in plain_lyrics_text
+            ]
+
+            # Step 7: CTC alignment
             try:
-                alignment_result = self.aligner.align(vocals_path, language=language)
+                alignment_result = self.aligner.align(
+                    vocals_path, plain_lyrics_text, language=language
+                )
             except Exception as e:
                 raise RuntimeError(f"Alignment failed: {e}") from e
 
-            # Step 7: Snap to lyrics
-            asr_words = alignment_result.words
             detected_language = alignment_result.detected_language
-            if plain_lyrics_text:
-                synced_lines = snap_words_to_lyrics(asr_words, plain_lyrics_text)
-                # Keep timing_source from step 3 (lrclib_synced or lrclib_enhanced)
-                if timing_source == "lrclib_synced":
-                    timing_source = "lrclib_enhanced"  # Now enhanced with word timestamps
-            elif asr_words:
-                # No lyrics — build SyncedLines directly from ASR words
-                synced_lines = SyncPipeline._lines_from_asr(asr_words)
-                timing_source = "whisperx_only"
-            else:
-                synced_lines = []
-                timing_source = "whisperx_only"
+            aligned_words = alignment_result.words
 
+            # Step 8: Re-group flat word list into SyncedLines by original line
+            synced_lines = _build_synced_lines(
+                plain_lyrics_text, lyrics_lines, aligned_words, word_counts
+            )
 
-        # Step 8: Build result
+            timing_source = "ctc_aligned"
+
+        # Step 9: Build result
         result = SyncResult(
             track=track_info,
             lines=synced_lines,
@@ -222,14 +274,12 @@ class SyncPipeline:
             detected_language=detected_language,
         )
 
-        # Step 9: Cache result
+        # Step 10: Cache result
         self.cache.store_result(result, language=language)
 
         return result
 
-    def _resolve_input(
-        self, request: SyncRequest
-    ) -> tuple[TrackInfo, str | None]:
+    def _resolve_input(self, request: SyncRequest) -> tuple[TrackInfo, str | None]:
         """Resolve request into TrackInfo and optional YouTube URL.
 
         Returns:
@@ -303,40 +353,6 @@ class SyncPipeline:
             )
 
         raise ValueError("Must provide url, title, or artist")
-
-    @staticmethod
-    def _lines_from_asr(asr_words: list) -> list[SyncedLine]:
-        """Build SyncedLines from ASR words when no lyrics are available.
-
-        Groups words into lines of ~10 words each.
-        """
-        if not asr_words:
-            return []
-
-        lines: list[SyncedLine] = []
-        chunk_size = 10
-        for i in range(0, len(asr_words), chunk_size):
-            chunk = asr_words[i : i + chunk_size]
-            synced_words = [
-                SyncedWord(
-                    text=w.word.strip(),
-                    start=w.start,
-                    end=w.end,
-                    confidence=getattr(w, "score", 0.0),
-                )
-                for w in chunk
-            ]
-            text = " ".join(sw.text for sw in synced_words)
-            lines.append(
-                SyncedLine(
-                    text=text,
-                    start=synced_words[0].start,
-                    end=synced_words[-1].end,
-                    words=synced_words,
-                )
-            )
-
-        return lines
 
     @staticmethod
     def _parse_video_title(video_title: str) -> tuple[str, str | None]:

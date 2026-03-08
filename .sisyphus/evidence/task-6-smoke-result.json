@@ -1,0 +1,72 @@
+{
+  "test": "ctc_alignment_on_real_audio",
+  "song": "Rick Astley - Never Gonna Give You Up",
+  "elapsed_seconds": 135.59666109085083,
+  "lyrics_lines_used": 20,
+  "words_aligned": 135,
+  "avg_score": 0.2382880311875656,
+  "first_5_words": [
+    {
+      "word": "we're",
+      "start": 18.76,
+      "end": 18.98,
+      "score": 0.3673251493019052
+    },
+    {
+      "word": "no",
+      "start": 19.02,
+      "end": 19.1,
+      "score": 0.739764541387558
+    },
+    {
+      "word": "strangers",
+      "start": 19.2,
+      "end": 19.74,
+      "score": 0.5502978778547711
+    },
+    {
+      "word": "to",
+      "start": 19.78,
+      "end": 19.84,
+      "score": 0.280181864509359
+    },
+    {
+      "word": "love",
+      "start": 19.84,
+      "end": 20.2,
+      "score": 0.03337207483127713
+    }
+  ],
+  "last_5_words": [
+    {
+      "word": "never",
+      "start": 114.88,
+      "end": 115.08,
+      "score": 0.06175545360893011
+    },
+    {
+      "word": "gonna",
+      "start": 115.12,
+      "end": 115.5,
+      "score": 0.26745170056819917
+    },
+    {
+      "word": "let",
+      "start": 115.92,
+      "end": 137.84,
+      "score": 0.2485304723183314
+    },
+    {
+      "word": "you",
+      "start": 143.1,
+      "end": 160.08,
+      "score": 0.3448560784260432
+    },
+    {
+      "word": "down",
+      "start": 160.24,
+      "end": 160.94,
+      "score": 0.25061371581978165
+    }
+  ]
+}

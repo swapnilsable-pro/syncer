@@ -1,12 +1,20 @@
 """FastAPI REST API for the Syncer lyrics synchronization service."""
 
 import logging
+import warnings
 from contextlib import asynccontextmanager
+from pathlib import Path
+
+# Suppress noisy torchcodec/pyannote warnings (not used in our pipeline)
+warnings.filterwarnings("ignore", message=".*torchcodec is not installed correctly.*")
+warnings.filterwarnings("ignore", message=".*Lightning automatically upgraded.*")
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from syncer.config import Settings
-from syncer.models import SyncRequest, SyncResult
+from syncer.models import SyncRequest, SyncResult, TrackSummary
 from syncer.pipeline import SyncPipeline
 
 logger = logging.getLogger(__name__)
@@ -54,3 +62,22 @@ async def get_cached(track_id: str) -> SyncResult:
     if result is None:
         raise HTTPException(404, "Track not found in cache")
     return result
+
+
+@app.get("/api/tracks")
+async def list_tracks() -> list[TrackSummary]:
+    if _pipeline is None:
+        raise HTTPException(503, "Pipeline not initialized")
+    return _pipeline.cache.list_tracks()
+
+
+# Serve frontend
+_static_dir = Path(__file__).parent / "static"
+
+
+@app.get("/")
+async def index():
+    return FileResponse(_static_dir / "index.html")
+
+
+app.mount("/static", StaticFiles(directory=_static_dir), name="static")

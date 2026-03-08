@@ -3,7 +3,7 @@ import logging
 import sqlite3
 from pathlib import Path
 
-from syncer.models import SyncResult
+from syncer.models import SyncResult, TrackSummary
 
 logger = logging.getLogger(__name__)
 
@@ -128,3 +128,30 @@ class CacheManager:
                 result.track.title,
                 result.track.artist,
             )
+
+    def list_tracks(self) -> list[TrackSummary]:
+        """Return all cached tracks with summary metadata, newest first."""
+        try:
+            with self._connect() as conn:
+                rows = conn.execute(
+                    """SELECT t.id, t.title, t.artist, t.duration,
+                              sr.confidence, sr.timing_source, sr.created_at
+                       FROM tracks t
+                       LEFT JOIN sync_results sr ON t.id = sr.track_id
+                       ORDER BY sr.created_at DESC"""
+                ).fetchall()
+                return [
+                    TrackSummary(
+                        track_id=row[0],
+                        title=row[1],
+                        artist=row[2],
+                        duration=row[3] or 0.0,
+                        confidence=row[4],
+                        timing_source=row[5],
+                        created_at=row[6],
+                    )
+                    for row in rows
+                ]
+        except Exception:
+            logger.exception("Failed to list tracks")
+            return []

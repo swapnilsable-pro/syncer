@@ -1,0 +1,35 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.8, pytest-9.0.2, pluggy-1.6.0 -- /Users/swapnil/project/syncer/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/swapnil/project/syncer
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 24 items
+
+tests/test_pipeline.py::TestCacheHit::test_cache_hit_returns_fast PASSED [  4%]
+tests/test_pipeline.py::TestYouTubeFullPipeline::test_youtube_url_full_pipeline PASSED [  8%]
+tests/test_pipeline.py::TestLrcLibSyncedPath::test_lrclib_synced_enhanced_with_alignment PASSED [ 12%]
+tests/test_pipeline.py::TestAudioExtractionFailure::test_audio_extraction_failure_with_plain_lyrics PASSED [ 16%]
+tests/test_pipeline.py::TestAudioExtractionFailure::test_audio_failure_with_synced_lyrics_returns_lyrics PASSED [ 20%]
+tests/test_pipeline.py::TestTitleArtistQuery::test_title_artist_searches_youtube PASSED [ 25%]
+tests/test_pipeline.py::TestInvalidInput::test_no_url_no_title_raises PASSED [ 29%]
+tests/test_pipeline.py::TestInvalidInput::test_unsupported_url_raises PASSED [ 33%]
+tests/test_pipeline.py::TestSpotifyPath::test_spotify_url_resolves_and_searches PASSED [ 37%]
+tests/test_pipeline.py::TestNoLyricsGracefulSkip::test_no_lyrics_graceful_skip PASSED [ 41%]
+tests/test_pipeline.py::TestNoLyricsGracefulSkip::test_no_lyrics_skips_audio_extraction PASSED [ 45%]
+tests/test_pipeline.py::TestNoLyricsGracefulSkip::test_lrclib_fetch_exception_graceful_skip PASSED [ 50%]
+tests/test_pipeline.py::TestSearchYouTubeFailure::test_search_youtube_no_results PASSED [ 54%]
+tests/test_pipeline.py::TestParseVideoTitle::test_artist_dash_title PASSED [ 58%]
+tests/test_pipeline.py::TestParseVideoTitle::test_artist_dash_title_official_video PASSED [ 62%]
+tests/test_pipeline.py::TestParseVideoTitle::test_artist_dash_title_brackets PASSED [ 66%]
+tests/test_pipeline.py::TestParseVideoTitle::test_no_separator PASSED    [ 70%]
+tests/test_pipeline.py::TestParseVideoTitle::test_lyrics_suffix PASSED   [ 75%]
+tests/test_pipeline.py::TestParseVideoTitle::test_pipe_suffix_stripped PASSED [ 79%]
+tests/test_pipeline.py::TestParseVideoTitle::test_official_audio PASSED  [ 83%]
+tests/test_pipeline.py::TestYouTubeMetadataExtraction::test_youtube_url_extracts_metadata_and_retries_lrclib PASSED [ 87%]
+tests/test_pipeline.py::TestYouTubeMetadataExtraction::test_youtube_url_no_dash_in_title_uses_full_title PASSED [ 91%]
+tests/test_pipeline.py::TestLanguageParameter::test_language_threaded_to_aligner PASSED [ 95%]
+tests/test_pipeline.py::TestLanguageParameter::test_detected_language_in_result PASSED [100%]
+
+============================== 24 passed in 0.08s ==============================

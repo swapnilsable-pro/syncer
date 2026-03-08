@@ -1,6 +1,8 @@
 {
-  "active_plan": "/Users/swapnil/project/syncer/.sisyphus/plans/hindi-language-param.md",
-  "started_at": "2026-03-06T21:13:59.638Z",
-  "session_ids": ["ses_33b744180ffeK1REUwT8tTt93u"],
-  "plan_name": "hindi-language-param"
+  "active_plan": "/Users/swapnil/project/syncer/.sisyphus/plans/pipeline-refactor.md",
+  "started_at": "2026-03-08T14:28:27.441Z",
+  "session_ids": [
+    "ses_33637eacfffeGkDKixYNTZMFeg"
+  ],
+  "plan_name": "pipeline-refactor"
 }

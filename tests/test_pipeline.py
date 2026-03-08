@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch, PropertyMock
 
 import pytest
 
+from syncer.alignment.ctc_aligner import AlignmentResult, AlignedWord
 from syncer.config import Settings
 from syncer.models import SyncRequest, SyncResult, SyncedLine, SyncedWord, TrackInfo
 from syncer.pipeline import SyncPipeline
@@ -21,14 +22,6 @@ class FakeAudioResult:
     title: str
     duration: float
     youtube_id: str
-
-
-@dataclass
-class FakeAlignedWord:
-    word: str
-    start: float
-    end: float
-    score: float = 0.9
 
 
 @dataclass
@@ -66,23 +59,37 @@ def _make_synced_lines() -> list[SyncedLine]:
     ]
 
 
-def _make_asr_words() -> list[FakeAlignedWord]:
-    return [
-        FakeAlignedWord(word="Hello", start=0.0, end=1.0, score=0.9),
-        FakeAlignedWord(word="world", start=1.0, end=2.0, score=0.9),
-    ]
+def _make_alignment_result(
+    words_per_line: list[list[str]] | None = None,
+) -> AlignmentResult:
+    """Create an AlignmentResult with flat word list.
+
+    Args:
+        words_per_line: list of word lists per line, e.g. [["hello", "world"], ["foo"]].
+            Defaults to [["hello", "world"]] (matching "Hello world" lyrics).
+    """
+    if words_per_line is None:
+        words_per_line = [["hello", "world"]]
+
+    aligned = []
+    t = 0.0
+    for line_words in words_per_line:
+        for w in line_words:
+            aligned.append(AlignedWord(word=w, start=t, end=t + 1.0, score=0.9))
+            t += 1.0
+
+    return AlignmentResult(words=aligned, detected_language="en")
 
 
 # Patch targets (where they're imported in pipeline module)
 _P_SEPARATOR = "syncer.pipeline.VocalSeparator"
-_P_ALIGNER = "syncer.pipeline.WordAligner"
+_P_ALIGNER = "syncer.pipeline.CTCAligner"
 _P_FETCH_LYRICS = "syncer.pipeline.fetch_lyrics"
 _P_PARSE_LRC = "syncer.pipeline.parse_lrc"
 _P_RESOLVE_SPOTIFY = "syncer.pipeline.resolve_spotify_url"
 _P_EXTRACT_AUDIO = "syncer.pipeline.extract_audio"
 _P_SEARCH_YOUTUBE = "syncer.pipeline.search_youtube"
 _P_PARSE_YOUTUBE = "syncer.pipeline.parse_youtube_url"
-_P_SNAP = "syncer.pipeline.snap_words_to_lyrics"
 _P_CONFIDENCE = "syncer.pipeline.compute_confidence"
 
 
@@ -119,7 +126,7 @@ class TestCacheHit:
             ),
             lines=_make_synced_lines(),
             confidence=0.9,
-            timing_source="whisperx_only",
+            timing_source="ctc_aligned",
             cached=False,
             processing_time_seconds=1.5,
         )
@@ -146,12 +153,10 @@ class TestYouTubeFullPipeline:
     @patch(_P_FETCH_LYRICS)
     @patch(_P_EXTRACT_AUDIO)
     @patch(_P_PARSE_YOUTUBE)
-    @patch(_P_SNAP)
     @patch(_P_CONFIDENCE)
     def test_youtube_url_full_pipeline(
         self,
         mock_conf,
-        mock_snap,
         mock_parse_yt,
         mock_extract,
         mock_fetch,
@@ -177,9 +182,13 @@ class TestYouTubeFullPipeline:
             instrumental=False,
         )
         mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        asr_words = _make_asr_words()
-        mock_align_cls.return_value.align.return_value = MagicMock(words=asr_words, detected_language="en")
-        mock_snap.return_value = _make_synced_lines()
+        # 2 lines × 5 words each = 10 aligned words
+        mock_align_cls.return_value.align.return_value = _make_alignment_result(
+            [
+                ["never", "gonna", "give", "you", "up"],
+                ["never", "gonna", "let", "you", "down"],
+            ]
+        )
         mock_conf.return_value = 0.85
 
         pipeline = SyncPipeline(settings)
@@ -189,13 +198,12 @@ class TestYouTubeFullPipeline:
 
         assert result.cached is False
         assert result.confidence == 0.85
-        assert result.timing_source == "lrclib_enhanced"
-        assert len(result.lines) > 0
+        assert result.timing_source == "ctc_aligned"
+        assert len(result.lines) == 2
         # Verify sub-modules were called
         mock_extract.assert_called_once()
         mock_sep_cls.return_value.separate.assert_called_once()
         mock_align_cls.return_value.align.assert_called_once()
-        mock_snap.assert_called_once()
 
 
 class TestLrcLibSyncedPath:
@@ -207,12 +215,10 @@ class TestLrcLibSyncedPath:
     @patch(_P_EXTRACT_AUDIO)
     @patch(_P_SEARCH_YOUTUBE)
     @patch(_P_PARSE_LRC)
-    @patch(_P_SNAP)
     @patch(_P_CONFIDENCE)
     def test_lrclib_synced_enhanced_with_alignment(
         self,
         mock_conf,
-        mock_snap,
         mock_parse_lrc,
         mock_search,
         mock_extract,
@@ -221,7 +227,7 @@ class TestLrcLibSyncedPath:
         mock_align_cls,
         settings,
     ):
-        """LRCLIB synced lyrics + alignment = lrclib_enhanced."""
+        """LRCLIB synced lyrics + CTC alignment = ctc_aligned."""
         synced_lines = _make_synced_lines()
         mock_parse_lrc.return_value = synced_lines
         mock_fetch.return_value = FakeLrcLibResult(
@@ -241,28 +247,29 @@ class TestLrcLibSyncedPath:
             youtube_id="abc12345678",
         )
         mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="en")
-        mock_snap.return_value = synced_lines
+        mock_align_cls.return_value.align.return_value = _make_alignment_result(
+            [["hello", "world"]]
+        )
         mock_conf.return_value = 0.9
 
         pipeline = SyncPipeline(settings)
         request = SyncRequest(title="Test", artist="Artist")
         result = pipeline.sync(request)
 
-        # Synced lyrics + alignment → enhanced
-        assert result.timing_source == "lrclib_enhanced"
+        # Synced lyrics + CTC alignment → ctc_aligned
+        assert result.timing_source == "ctc_aligned"
         assert result.confidence == 0.9
 
 
 class TestAudioExtractionFailure:
-    """yt-dlp fails → RuntimeError with clear message."""
+    """Audio extraction failure paths."""
 
     @patch(_P_ALIGNER)
     @patch(_P_SEPARATOR)
     @patch(_P_FETCH_LYRICS)
     @patch(_P_EXTRACT_AUDIO)
     @patch(_P_SEARCH_YOUTUBE)
-    def test_audio_extraction_failure_no_lyrics(
+    def test_audio_extraction_failure_with_plain_lyrics(
         self,
         mock_search,
         mock_extract,
@@ -271,8 +278,16 @@ class TestAudioExtractionFailure:
         mock_align_cls,
         settings,
     ):
-        """Audio extraction fails without synced lyrics → RuntimeError."""
-        mock_fetch.return_value = None
+        """Audio extraction fails with plain lyrics only (no synced) → RuntimeError."""
+        mock_fetch.return_value = FakeLrcLibResult(
+            track_name="Test",
+            artist_name="Artist",
+            album_name=None,
+            duration=180.0,
+            synced_lyrics=None,
+            plain_lyrics="Hello world",
+            instrumental=False,
+        )
         mock_search.return_value = "https://www.youtube.com/watch?v=abc12345678"
         mock_extract.side_effect = RuntimeError("Download failed: 403 Forbidden")
 
@@ -333,12 +348,10 @@ class TestTitleArtistQuery:
     @patch(_P_FETCH_LYRICS)
     @patch(_P_EXTRACT_AUDIO)
     @patch(_P_SEARCH_YOUTUBE)
-    @patch(_P_SNAP)
     @patch(_P_CONFIDENCE)
     def test_title_artist_searches_youtube(
         self,
         mock_conf,
-        mock_snap,
         mock_search,
         mock_extract,
         mock_fetch,
@@ -347,7 +360,15 @@ class TestTitleArtistQuery:
         settings,
     ):
         """Title + artist → search_youtube called with correct query."""
-        mock_fetch.return_value = None
+        mock_fetch.return_value = FakeLrcLibResult(
+            track_name="Test Song",
+            artist_name="Test Artist",
+            album_name=None,
+            duration=200.0,
+            synced_lyrics=None,
+            plain_lyrics="Hello world",
+            instrumental=False,
+        )
         mock_search.return_value = "https://www.youtube.com/watch?v=abc12345678"
         mock_extract.return_value = FakeAudioResult(
             audio_path=Path("/fake/audio.wav"),
@@ -356,8 +377,9 @@ class TestTitleArtistQuery:
             youtube_id="abc12345678",
         )
         mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="en")
-        mock_snap.return_value = []
+        mock_align_cls.return_value.align.return_value = _make_alignment_result(
+            [["hello", "world"]]
+        )
         mock_conf.return_value = 0.0
 
         pipeline = SyncPipeline(settings)
@@ -400,12 +422,10 @@ class TestSpotifyPath:
     @patch(_P_EXTRACT_AUDIO)
     @patch(_P_SEARCH_YOUTUBE)
     @patch(_P_RESOLVE_SPOTIFY)
-    @patch(_P_SNAP)
     @patch(_P_CONFIDENCE)
     def test_spotify_url_resolves_and_searches(
         self,
         mock_conf,
-        mock_snap,
         mock_resolve,
         mock_search,
         mock_extract,
@@ -422,7 +442,15 @@ class TestSpotifyPath:
             isrc="GBUM71029604",
             spotify_id="3z8h0TU7ReDPLIbEnYhWZb",
         )
-        mock_fetch.return_value = None
+        mock_fetch.return_value = FakeLrcLibResult(
+            track_name="Bohemian Rhapsody",
+            artist_name="Queen",
+            album_name=None,
+            duration=354.0,
+            synced_lyrics=None,
+            plain_lyrics="Is this the real life",
+            instrumental=False,
+        )
         mock_search.return_value = "https://www.youtube.com/watch?v=fJ9rUzIMcZQ"
         mock_extract.return_value = FakeAudioResult(
             audio_path=Path("/fake/audio.wav"),
@@ -431,9 +459,10 @@ class TestSpotifyPath:
             youtube_id="fJ9rUzIMcZQ",
         )
         mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="en")
-        mock_snap.return_value = []
-        mock_conf.return_value = 0.0
+        mock_align_cls.return_value.align.return_value = _make_alignment_result(
+            [["is", "this", "the", "real", "life"]]
+        )
+        mock_conf.return_value = 0.8
 
         pipeline = SyncPipeline(settings)
         request = SyncRequest(
@@ -447,18 +476,39 @@ class TestSpotifyPath:
         assert result.track.spotify_id == "3z8h0TU7ReDPLIbEnYhWZb"
 
 
-class TestWhisperXOnlyPath:
-    """No lyrics available → whisperx_only with ASR-derived lines."""
+class TestNoLyricsGracefulSkip:
+    """No lyrics available → graceful skip with no_lyrics result."""
+
+    @patch(_P_ALIGNER)
+    @patch(_P_SEPARATOR)
+    @patch(_P_FETCH_LYRICS)
+    def test_no_lyrics_graceful_skip(
+        self,
+        mock_fetch,
+        mock_sep_cls,
+        mock_align_cls,
+        settings,
+    ):
+        """No LRCLIB result → no_lyrics result without audio extraction."""
+        mock_fetch.return_value = None
+
+        pipeline = SyncPipeline(settings)
+        request = SyncRequest(title="Instrumental", artist="Various")
+        result = pipeline.sync(request)
+
+        assert result.timing_source == "no_lyrics"
+        assert result.lines == []
+        assert result.confidence == 0.0
+        # Verify audio was NOT extracted (skipped)
+        # No extract_audio mock needed — it was never imported/patched
 
     @patch(_P_ALIGNER)
     @patch(_P_SEPARATOR)
     @patch(_P_FETCH_LYRICS)
     @patch(_P_EXTRACT_AUDIO)
     @patch(_P_SEARCH_YOUTUBE)
-    @patch(_P_CONFIDENCE)
-    def test_no_lyrics_uses_asr_only(
+    def test_no_lyrics_skips_audio_extraction(
         self,
-        mock_conf,
         mock_search,
         mock_extract,
         mock_fetch,
@@ -466,31 +516,41 @@ class TestWhisperXOnlyPath:
         mock_align_cls,
         settings,
     ):
-        """No LRCLIB result → whisperx_only with lines from ASR."""
+        """When LRCLIB returns no lyrics, audio extraction is NOT attempted."""
         mock_fetch.return_value = None
-        mock_search.return_value = "https://www.youtube.com/watch?v=abc12345678"
-        mock_extract.return_value = FakeAudioResult(
-            audio_path=Path("/fake/audio.wav"),
-            title="Instrumental",
-            duration=120.0,
-            youtube_id="abc12345678",
-        )
-        mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="en")
-        mock_conf.return_value = 0.9
 
         pipeline = SyncPipeline(settings)
         request = SyncRequest(title="Instrumental", artist="Various")
         result = pipeline.sync(request)
 
-        assert result.timing_source == "whisperx_only"
-        # Lines are built from ASR words
-        assert len(result.lines) > 0
-        assert result.lines[0].text == "Hello world"
+        assert result.timing_source == "no_lyrics"
+        mock_search.assert_not_called()
+        mock_extract.assert_not_called()
+
+    @patch(_P_ALIGNER)
+    @patch(_P_SEPARATOR)
+    @patch(_P_FETCH_LYRICS)
+    def test_lrclib_fetch_exception_graceful_skip(
+        self,
+        mock_fetch,
+        mock_sep_cls,
+        mock_align_cls,
+        settings,
+    ):
+        """LRCLIB fetch raises exception → graceful skip (no_lyrics)."""
+        mock_fetch.side_effect = Exception("Network error")
+
+        pipeline = SyncPipeline(settings)
+        request = SyncRequest(title="Test", artist="Artist")
+        result = pipeline.sync(request)
+
+        assert result.timing_source == "no_lyrics"
+        assert result.lines == []
+        assert result.confidence == 0.0
 
 
 class TestSearchYouTubeFailure:
-    """YouTube search returns None → RuntimeError."""
+    """YouTube search returns None → RuntimeError (when lyrics available)."""
 
     @patch(_P_ALIGNER)
     @patch(_P_SEPARATOR)
@@ -505,7 +565,15 @@ class TestSearchYouTubeFailure:
         settings,
     ):
         """search_youtube returns None → RuntimeError."""
-        mock_fetch.return_value = None
+        mock_fetch.return_value = FakeLrcLibResult(
+            track_name="Nonexistent Song",
+            artist_name="Nobody",
+            album_name=None,
+            duration=None,
+            synced_lyrics=None,
+            plain_lyrics="Some lyrics here",
+            instrumental=False,
+        )
         mock_search.return_value = None
 
         pipeline = SyncPipeline(settings)
@@ -519,7 +587,9 @@ class TestParseVideoTitle:
     """_parse_video_title extracts artist/title from YouTube video titles."""
 
     def test_artist_dash_title(self):
-        title, artist = SyncPipeline._parse_video_title("Rick Astley - Never Gonna Give You Up")
+        title, artist = SyncPipeline._parse_video_title(
+            "Rick Astley - Never Gonna Give You Up"
+        )
         assert title == "Never Gonna Give You Up"
         assert artist == "Rick Astley"
 
@@ -543,9 +613,7 @@ class TestParseVideoTitle:
         assert artist is None
 
     def test_lyrics_suffix(self):
-        title, artist = SyncPipeline._parse_video_title(
-            "Adele - Hello (Lyrics)"
-        )
+        title, artist = SyncPipeline._parse_video_title("Adele - Hello (Lyrics)")
         assert title == "Hello"
         assert artist == "Adele"
 
@@ -573,12 +641,10 @@ class TestYouTubeMetadataExtraction:
     @patch(_P_EXTRACT_AUDIO)
     @patch(_P_PARSE_YOUTUBE)
     @patch(_P_PARSE_LRC)
-    @patch(_P_SNAP)
     @patch(_P_CONFIDENCE)
     def test_youtube_url_extracts_metadata_and_retries_lrclib(
         self,
         mock_conf,
-        mock_snap,
         mock_parse_lrc,
         mock_parse_yt,
         mock_extract,
@@ -595,10 +661,19 @@ class TestYouTubeMetadataExtraction:
             duration=213.0,
             youtube_id="dQw4w9WgXcQ",
         )
-        # First LRCLIB call with "Unknown" → None; second with real metadata → result
+        # First LRCLIB call with "Unknown" title → plain lyrics (so we don't skip)
+        # Second LRCLIB call with real metadata → synced lyrics
         synced_lines = _make_synced_lines()
         mock_fetch.side_effect = [
-            None,  # First call with "Unknown" title
+            FakeLrcLibResult(
+                track_name="Unknown",
+                artist_name="Unknown",
+                album_name=None,
+                duration=None,
+                synced_lyrics=None,
+                plain_lyrics="Hello world",
+                instrumental=False,
+            ),
             FakeLrcLibResult(
                 track_name="Never Gonna Give You Up",
                 artist_name="Rick Astley",
@@ -611,8 +686,9 @@ class TestYouTubeMetadataExtraction:
         ]
         mock_parse_lrc.return_value = synced_lines
         mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="en")
-        mock_snap.return_value = synced_lines
+        mock_align_cls.return_value.align.return_value = _make_alignment_result(
+            [["hello", "world"]]
+        )
         mock_conf.return_value = 0.9
 
         pipeline = SyncPipeline(settings)
@@ -628,8 +704,8 @@ class TestYouTubeMetadataExtraction:
         second_call = mock_fetch.call_args_list[1]
         assert second_call[0][0] == "Never Gonna Give You Up"
         assert second_call[0][1] == "Rick Astley"
-        # Got synced lyrics from retry → enhanced after alignment
-        assert result.timing_source == "lrclib_enhanced"
+        # CTC alignment ran → ctc_aligned
+        assert result.timing_source == "ctc_aligned"
 
     @patch(_P_ALIGNER)
     @patch(_P_SEPARATOR)
@@ -655,9 +731,23 @@ class TestYouTubeMetadataExtraction:
             duration=180.0,
             youtube_id="abc12345678",
         )
-        mock_fetch.side_effect = [None, None]  # No lyrics found either time
+        # First call returns plain lyrics; second call (retry with parsed title) returns None
+        mock_fetch.side_effect = [
+            FakeLrcLibResult(
+                track_name="Unknown",
+                artist_name="Unknown",
+                album_name=None,
+                duration=None,
+                synced_lyrics=None,
+                plain_lyrics="Hello world",
+                instrumental=False,
+            ),
+            None,  # Retry with parsed title still finds nothing
+        ]
         mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="en")
+        mock_align_cls.return_value.align.return_value = _make_alignment_result(
+            [["hello", "world"]]
+        )
         mock_conf.return_value = 0.5
 
         pipeline = SyncPipeline(settings)
@@ -677,12 +767,10 @@ class TestLanguageParameter:
     @patch(_P_FETCH_LYRICS)
     @patch(_P_EXTRACT_AUDIO)
     @patch(_P_SEARCH_YOUTUBE)
-    @patch(_P_SNAP)
     @patch(_P_CONFIDENCE)
     def test_language_threaded_to_aligner(
         self,
         mock_conf,
-        mock_snap,
         mock_search,
         mock_extract,
         mock_fetch,
@@ -691,7 +779,15 @@ class TestLanguageParameter:
         settings,
     ):
         """language from SyncRequest is passed to aligner.align()."""
-        mock_fetch.return_value = None
+        mock_fetch.return_value = FakeLrcLibResult(
+            track_name="Test Song",
+            artist_name="Test Artist",
+            album_name=None,
+            duration=200.0,
+            synced_lyrics=None,
+            plain_lyrics="Hello world",
+            instrumental=False,
+        )
         mock_search.return_value = "https://www.youtube.com/watch?v=abc12345678"
         mock_extract.return_value = FakeAudioResult(
             audio_path=Path("/fake/audio.wav"),
@@ -700,8 +796,13 @@ class TestLanguageParameter:
             youtube_id="abc12345678",
         )
         mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="hi")
-        mock_snap.return_value = []
+        mock_align_cls.return_value.align.return_value = AlignmentResult(
+            words=[
+                AlignedWord(word="hello", start=0.0, end=1.0, score=0.9),
+                AlignedWord(word="world", start=1.0, end=2.0, score=0.9),
+            ],
+            detected_language="hi",
+        )
         mock_conf.return_value = 0.0
 
         pipeline = SyncPipeline(settings)
@@ -729,7 +830,15 @@ class TestLanguageParameter:
         settings,
     ):
         """detected_language from aligner appears in SyncResult."""
-        mock_fetch.return_value = None
+        mock_fetch.return_value = FakeLrcLibResult(
+            track_name="Test Song",
+            artist_name="Test Artist",
+            album_name=None,
+            duration=200.0,
+            synced_lyrics=None,
+            plain_lyrics="Hello world",
+            instrumental=False,
+        )
         mock_search.return_value = "https://www.youtube.com/watch?v=abc12345678"
         mock_extract.return_value = FakeAudioResult(
             audio_path=Path("/fake/audio.wav"),
@@ -738,7 +847,9 @@ class TestLanguageParameter:
             youtube_id="abc12345678",
         )
         mock_sep_cls.return_value.separate.return_value = Path("/fake/vocals.wav")
-        mock_align_cls.return_value.align.return_value = MagicMock(words=_make_asr_words(), detected_language="en")
+        mock_align_cls.return_value.align.return_value = _make_alignment_result(
+            [["hello", "world"]]
+        )
         mock_conf.return_value = 0.9
 
         pipeline = SyncPipeline(settings)
