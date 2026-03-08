@@ -29,7 +29,7 @@ class SyncResult(BaseModel):
     track: TrackInfo
     lines: list[SyncedLine]
     confidence: float  # overall 0.0-1.0
-    timing_source: str  # 'lrclib_synced', 'lrclib_enhanced', 'whisperx_aligned', 'whisperx_only'
+    timing_source: str  # 'ctc_aligned', 'lrclib_synced', 'no_lyrics'
     cached: bool = False
     detected_language: str | None = None
     processing_time_seconds: float | None = None

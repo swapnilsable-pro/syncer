@@ -360,7 +360,6 @@ class SyncPipeline:
         # Common formats: "Artist - Title", "Artist - Title (Official Video)", etc.
         # Strip common suffixes first
         cleaned = video_title.strip()
-        cleaned = video_title.strip()
         # Remove common YouTube suffixes
         suffixes = [
             r"\s*\(Official\s*(Music\s*)?Video\)",
