@@ -155,3 +155,17 @@ class CacheManager:
         except Exception:
             logger.exception("Failed to list tracks")
             return []
+
+    def clear_all(self) -> int:
+        """Delete all cached entries. Returns number of entries cleared."""
+        try:
+            with self._connect() as conn:
+                count = conn.execute("SELECT COUNT(*) FROM sync_results").fetchone()[0]
+                conn.execute("DELETE FROM sync_results")
+                conn.execute("DELETE FROM tracks")
+                conn.commit()
+                logger.info("Cache cleared: %d entries removed", count)
+                return count
+        except Exception:
+            logger.exception("Cache clear failed")
+            return 0

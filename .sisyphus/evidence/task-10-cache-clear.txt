@@ -1,0 +1,59 @@
+TASK 10: Cache Clear Method and Script
+======================================
+
+OBJECTIVE:
+Add clear_all() method to CacheManager and create a script to clear stale WhisperX-era cache entries.
+
+VERIFICATION RESULTS:
+=====================
+
+1. ✓ clear_all() method added to src/syncer/cache.py
+   - Method signature: def clear_all(self) -> int
+   - Returns count of entries cleared
+   - Deletes all rows from sync_results and tracks tables
+   - Includes error handling and logging
+
+2. ✓ scripts/clear_cache.py created
+   - Script location: scripts/clear_cache.py
+   - Imports CacheManager and Settings correctly
+   - Displays before/after counts
+   - Asserts final state is 0 entries
+
+3. ✓ Method existence verified
+   Command: .venv/bin/python -c "from syncer.cache import CacheManager; print('clear_all' in dir(CacheManager))"
+   Result: True
+
+4. ✓ First run of clear script
+   Command: .venv/bin/python scripts/clear_cache.py
+   Output:
+     Before: 12 cached entries
+     Cleared: 12 entries
+     After: 0 cached entries
+     Cache cleared successfully.
+
+5. ✓ Second run (idempotency test)
+   Command: .venv/bin/python scripts/clear_cache.py
+   Output:
+     Before: 0 cached entries
+     Cleared: 0 entries
+     After: 0 cached entries
+     Cache cleared successfully.
+   Result: No crash, idempotent behavior confirmed
+
+6. ✓ Final state verification
+   Command: .venv/bin/python -c "from syncer.cache import CacheManager; from syncer.config import Settings; c = CacheManager(Settings().db_path); print(len(c.list_tracks()))"
+   Result: 0
+
+SUMMARY:
+========
+All requirements met:
+- clear_all() method implemented with proper error handling
+- Script created and tested
+- Idempotency verified (runs twice without error)
+- Cache successfully cleared from 12 to 0 entries
+- No database schema changes
+- No automatic migrations added
+- Existing methods unchanged
+
+Date: 2026-03-08
+Status: COMPLETE
