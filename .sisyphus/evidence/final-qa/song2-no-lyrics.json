@@ -1,0 +1,17 @@
+{
+  "track": {
+    "title": "Toccata and Fugue in D minor",
+    "artist": "Johann Sebastian Bach",
+    "duration": 0.0,
+    "isrc": null,
+    "source_url": null,
+    "spotify_id": null,
+    "youtube_id": null
+  },
+  "lines": [],
+  "confidence": 0.0,
+  "timing_source": "no_lyrics",
+  "cached": false,
+  "detected_language": null,
+  "processing_time_seconds": 1.9625661373138428
+}

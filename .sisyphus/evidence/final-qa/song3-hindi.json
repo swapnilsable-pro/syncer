@@ -1,0 +1,1593 @@
+{
+  "track": {
+    "title": "Tum Hi Ho",
+    "artist": "Arijit Singh",
+    "duration": 267.0,
+    "isrc": null,
+    "source_url": null,
+    "spotify_id": null,
+    "youtube_id": "Umqb9KENgmk"
+  },
+  "lines": [
+    {
+      "text": "Hum tere bin ab reh nahi sakte",
+      "start": 10.44,
+      "end": 15.04,
+      "words": [
+        {
+          "text": "hum",
+          "start": 10.44,
+          "end": 10.74,
+          "confidence": 0.35173909335086745
+        },
+        {
+          "text": "tere",
+          "start": 11.14,
+          "end": 11.62,
+          "confidence": 0.4215454813092947
+        },
+        {
+          "text": "bin",
+          "start": 11.78,
+          "end": 12.08,
+          "confidence": 0.5395716031392416
+        },
+        {
+          "text": "ab",
+          "start": 12.22,
+          "end": 12.74,
+          "confidence": 0.4484749585390091
+        },
+        {
+          "text": "reh",
+          "start": 13.04,
+          "end": 13.38,
+          "confidence": 0.4089508429169655
+        },
+        {
+          "text": "nahi",
+          "start": 13.68,
+          "end": 14.08,
+          "confidence": 0.4151887521147728
+        },
+        {
+          "text": "sakte",
+          "start": 14.28,
+          "end": 15.04,
+          "confidence": 0.39069889187812806
+        }
+      ]
+    },
+    {
+      "text": "Tere bina kya wajood mera",
+      "start": 15.6,
+      "end": 19.56,
+      "words": [
+        {
+          "text": "tere",
+          "start": 15.6,
+          "end": 16.32,
+          "confidence": 0.5165697732008994
+        },
+        {
+          "text": "bina",
+          "start": 16.52,
+          "end": 16.96,
+          "confidence": 0.6858732774853706
+        },
+        {
+          "text": "kya",
+          "start": 17.5,
+          "end": 17.62,
+          "confidence": 0.6125649213790894
+        },
+        {
+          "text": "wajood",
+          "start": 17.82,
+          "end": 18.8,
+          "confidence": 0.4267446572581927
+        },
+        {
+          "text": "mera",
+          "start": 19.08,
+          "end": 19.56,
+          "confidence": 0.5771068558096886
+        }
+      ]
+    },
+    {
+      "text": "Hum tere bin ab reh nahi sakte",
+      "start": 25.76,
+      "end": 30.34,
+      "words": [
+        {
+          "text": "hum",
+          "start": 25.76,
+          "end": 26.06,
+          "confidence": 0.38713870383799076
+        },
+        {
+          "text": "tere",
+          "start": 26.42,
+          "end": 26.9,
+          "confidence": 0.40338608995079994
+        },
+        {
+          "text": "bin",
+          "start": 27.12,
+          "end": 27.42,
+          "confidence": 0.46916420261065167
+        },
+        {
+          "text": "ab",
+          "start": 27.84,
+          "end": 28.06,
+          "confidence": 0.3147062808275223
+        },
+        {
+          "text": "reh",
+          "start": 28.38,
+          "end": 28.74,
+          "confidence": 0.46049091468254727
+        },
+        {
+          "text": "nahi",
+          "start": 29.0,
+          "end": 29.42,
+          "confidence": 0.4704376980662346
+        },
+        {
+          "text": "sakte",
+          "start": 29.6,
+          "end": 30.34,
+          "confidence": 0.4477854311466217
+        }
+      ]
+    },
+    {
+      "text": "Tere bina kya wajood mera",
+      "start": 30.92,
+      "end": 34.88,
+      "words": [
+        {
+          "text": "tere",
+          "start": 30.92,
+          "end": 31.64,
+          "confidence": 0.35844316869042814
+        },
+        {
+          "text": "bina",
+          "start": 31.88,
+          "end": 32.28,
+          "confidence": 0.3779531344771385
+        },
+        {
+          "text": "kya",
+          "start": 32.82,
+          "end": 32.94,
+          "confidence": 0.36813853681087494
+        },
+        {
+          "text": "wajood",
+          "start": 33.14,
+          "end": 34.12,
+          "confidence": 0.35209379081303877
+        },
+        {
+          "text": "mera",
+          "start": 34.4,
+          "end": 34.88,
+          "confidence": 0.4795718416571617
+        }
+      ]
+    },
+    {
+      "text": "Tujh se juda agar ho jaayenge",
+      "start": 36.0,
+      "end": 40.6,
+      "words": [
+        {
+          "text": "tujh",
+          "start": 36.0,
+          "end": 36.38,
+          "confidence": 0.390388086438179
+        },
+        {
+          "text": "se",
+          "start": 36.62,
+          "end": 36.76,
+          "confidence": 0.46703310310840607
+        },
+        {
+          "text": "juda",
+          "start": 37.0,
+          "end": 37.44,
+          "confidence": 0.6918758451938629
+        },
+        {
+          "text": "agar",
+          "start": 37.68,
+          "end": 38.28,
+          "confidence": 0.3542492133565247
+        },
+        {
+          "text": "ho",
+          "start": 38.56,
+          "end": 38.68,
+          "confidence": 0.3885810226202011
+        },
+        {
+          "text": "jaayenge",
+          "start": 39.18,
+          "end": 40.6,
+          "confidence": 0.2659999708412215
+        }
+      ]
+    },
+    {
+      "text": "Toh khud se hi ho jaayenge juda",
+      "start": 40.78,
+      "end": 45.08,
+      "words": [
+        {
+          "text": "toh",
+          "start": 40.78,
+          "end": 40.98,
+          "confidence": 0.3399755073090394
+        },
+        {
+          "text": "khud",
+          "start": 41.14,
+          "end": 41.44,
+          "confidence": 0.4986427631229162
+        },
+        {
+          "text": "se",
+          "start": 41.74,
+          "end": 41.88,
+          "confidence": 0.6552323698997498
+        },
+        {
+          "text": "hi",
+          "start": 42.08,
+          "end": 42.18,
+          "confidence": 0.7659518718719482
+        },
+        {
+          "text": "ho",
+          "start": 42.36,
+          "end": 42.48,
+          "confidence": 0.7291411757469177
+        },
+        {
+          "text": "jaayenge",
+          "start": 43.04,
+          "end": 44.42,
+          "confidence": 0.3766161610255949
+        },
+        {
+          "text": "juda",
+          "start": 44.62,
+          "end": 45.08,
+          "confidence": 0.6945412158966064
+        }
+      ]
+    },
+    {
+      "text": "Kyun ki tum hi ho",
+      "start": 48.3,
+      "end": 49.86,
+      "words": [
+        {
+          "text": "kyun",
+          "start": 48.3,
+          "end": 48.56,
+          "confidence": 0.2683073366060853
+        },
+        {
+          "text": "ki",
+          "start": 48.58,
+          "end": 48.68,
+          "confidence": 0.491095170378685
+        },
+        {
+          "text": "tum",
+          "start": 48.78,
+          "end": 49.12,
+          "confidence": 0.3787999451160431
+        },
+        {
+          "text": "hi",
+          "start": 49.42,
+          "end": 49.54,
+          "confidence": 0.6257972717285156
+        },
+        {
+          "text": "ho",
+          "start": 49.74,
+          "end": 49.86,
+          "confidence": 0.5549060702323914
+        }
+      ]
+    },
+    {
+      "text": "Ab tum hi ho",
+      "start": 51.08,
+      "end": 52.38,
+      "words": [
+        {
+          "text": "ab",
+          "start": 51.08,
+          "end": 51.22,
+          "confidence": 0.4977412521839142
+        },
+        {
+          "text": "tum",
+          "start": 51.36,
+          "end": 51.62,
+          "confidence": 0.44180944561958313
+        },
+        {
+          "text": "hi",
+          "start": 51.98,
+          "end": 52.08,
+          "confidence": 0.5944726765155792
+        },
+        {
+          "text": "ho",
+          "start": 52.26,
+          "end": 52.38,
+          "confidence": 0.5031893700361252
+        }
+      ]
+    },
+    {
+      "text": "Zindagi ab tum hi ho",
+      "start": 53.86,
+      "end": 57.52,
+      "words": [
+        {
+          "text": "zindagi",
+          "start": 53.86,
+          "end": 54.92,
+          "confidence": 0.39907316650663105
+        },
+        {
+          "text": "ab",
+          "start": 56.16,
+          "end": 56.28,
+          "confidence": 0.5484362244606018
+        },
+        {
+          "text": "tum",
+          "start": 56.42,
+          "end": 56.68,
+          "confidence": 0.5428038040796915
+        },
+        {
+          "text": "hi",
+          "start": 57.06,
+          "end": 57.18,
+          "confidence": 0.6478139460086823
+        },
+        {
+          "text": "ho",
+          "start": 57.4,
+          "end": 57.52,
+          "confidence": 0.6365738809108734
+        }
+      ]
+    },
+    {
+      "text": "Chain bhi",
+      "start": 58.96,
+      "end": 60.04,
+      "words": [
+        {
+          "text": "chain",
+          "start": 58.96,
+          "end": 59.64,
+          "confidence": 0.4191732130246237
+        },
+        {
+          "text": "bhi",
+          "start": 59.92,
+          "end": 60.04,
+          "confidence": 0.28695418934027356
+        }
+      ]
+    },
+    {
+      "text": "Mera dard bhi",
+      "start": 61.2,
+      "end": 62.64,
+      "words": [
+        {
+          "text": "mera",
+          "start": 61.2,
+          "end": 61.48,
+          "confidence": 0.4946221113204956
+        },
+        {
+          "text": "dard",
+          "start": 61.56,
+          "end": 62.24,
+          "confidence": 0.4731030613183975
+        },
+        {
+          "text": "bhi",
+          "start": 62.5,
+          "end": 62.64,
+          "confidence": 0.5658204257488251
+        }
+      ]
+    },
+    {
+      "text": "Meri aashiqui ab tum hi ho",
+      "start": 63.74,
+      "end": 67.72,
+      "words": [
+        {
+          "text": "meri",
+          "start": 63.74,
+          "end": 64.06,
+          "confidence": 0.6233482211828232
+        },
+        {
+          "text": "aashiqui",
+          "start": 64.22,
+          "end": 65.52,
+          "confidence": 0.2404265503573697
+        },
+        {
+          "text": "ab",
+          "start": 66.4,
+          "end": 66.52,
+          "confidence": 0.4858582615852356
+        },
+        {
+          "text": "tum",
+          "start": 66.68,
+          "end": 66.9,
+          "confidence": 0.470525860786438
+        },
+        {
+          "text": "hi",
+          "start": 67.3,
+          "end": 67.4,
+          "confidence": 0.6154660433530807
+        },
+        {
+          "text": "ho",
+          "start": 67.6,
+          "end": 67.72,
+          "confidence": 0.501329094171524
+        }
+      ]
+    },
+    {
+      "text": "Tera mera rishta hai kaisa",
+      "start": 89.6,
+      "end": 94.24,
+      "words": [
+        {
+          "text": "tera",
+          "start": 89.6,
+          "end": 90.4,
+          "confidence": 0.4625413194298744
+        },
+        {
+          "text": "mera",
+          "start": 90.96,
+          "end": 91.68,
+          "confidence": 0.4701930582523346
+        },
+        {
+          "text": "rishta",
+          "start": 92.22,
+          "end": 92.94,
+          "confidence": 0.4325854529937108
+        },
+        {
+          "text": "hai",
+          "start": 93.14,
+          "end": 93.34,
+          "confidence": 0.1974214450456202
+        },
+        {
+          "text": "kaisa",
+          "start": 93.48,
+          "end": 94.24,
+          "confidence": 0.15224921507760883
+        }
+      ]
+    },
+    {
+      "text": "Ek pal door gawara nahi",
+      "start": 94.86,
+      "end": 98.72,
+      "words": [
+        {
+          "text": "ek",
+          "start": 94.86,
+          "end": 95.1,
+          "confidence": 0.3609214723110199
+        },
+        {
+          "text": "pal",
+          "start": 95.4,
+          "end": 95.7,
+          "confidence": 0.41651130467653275
+        },
+        {
+          "text": "door",
+          "start": 95.98,
+          "end": 96.62,
+          "confidence": 0.40572103872545995
+        },
+        {
+          "text": "gawara",
+          "start": 96.9,
+          "end": 98.04,
+          "confidence": 0.6638301809628805
+        },
+        {
+          "text": "nahi",
+          "start": 98.24,
+          "end": 98.72,
+          "confidence": 0.5139904841780663
+        }
+      ]
+    },
+    {
+      "text": "Tere liye har roz hain jeete;",
+      "start": 99.86,
+      "end": 104.4,
+      "words": [
+        {
+          "text": "tere",
+          "start": 99.86,
+          "end": 100.62,
+          "confidence": 0.2993018142879009
+        },
+        {
+          "text": "liye",
+          "start": 100.84,
+          "end": 101.28,
+          "confidence": 0.2143779629841447
+        },
+        {
+          "text": "har",
+          "start": 101.8,
+          "end": 102.16,
+          "confidence": 0.2921691636244456
+        },
+        {
+          "text": "roz",
+          "start": 102.46,
+          "end": 103.06,
+          "confidence": 0.297757754723231
+        },
+        {
+          "text": "hain",
+          "start": 103.34,
+          "end": 103.54,
+          "confidence": 0.1487186251906678
+        },
+        {
+          "text": "jeete",
+          "start": 103.64,
+          "end": 104.4,
+          "confidence": 0.18828000247012824
+        }
+      ]
+    },
+    {
+      "text": "Tujhko diya mera waqt sabhi",
+      "start": 104.96,
+      "end": 108.94,
+      "words": [
+        {
+          "text": "tujhko",
+          "start": 104.96,
+          "end": 105.72,
+          "confidence": 0.246736079454422
+        },
+        {
+          "text": "diya",
+          "start": 105.94,
+          "end": 106.36,
+          "confidence": 0.30922694504261017
+        },
+        {
+          "text": "mera",
+          "start": 106.88,
+          "end": 107.3,
+          "confidence": 0.5204956792294979
+        },
+        {
+          "text": "waqt",
+          "start": 107.5,
+          "end": 108.16,
+          "confidence": 0.28706245427019894
+        },
+        {
+          "text": "sabhi",
+          "start": 108.44,
+          "end": 108.94,
+          "confidence": 0.43739794492721557
+        }
+      ]
+    },
+    {
+      "text": "Koi lamha mera na ho tere bina",
+      "start": 109.48,
+      "end": 113.98,
+      "words": [
+        {
+          "text": "koi",
+          "start": 109.48,
+          "end": 109.88,
+          "confidence": 0.12133544823154807
+        },
+        {
+          "text": "lamha",
+          "start": 110.04,
+          "end": 110.82,
+          "confidence": 0.6619195103645324
+        },
+        {
+          "text": "mera",
+          "start": 111.02,
+          "end": 111.44,
+          "confidence": 0.6544109061360359
+        },
+        {
+          "text": "na",
+          "start": 111.98,
+          "end": 112.12,
+          "confidence": 0.7108041942119598
+        },
+        {
+          "text": "ho",
+          "start": 112.32,
+          "end": 112.42,
+          "confidence": 0.6584120690822601
+        },
+        {
+          "text": "tere",
+          "start": 112.64,
+          "end": 113.4,
+          "confidence": 0.4202813785523176
+        },
+        {
+          "text": "bina",
+          "start": 113.58,
+          "end": 113.98,
+          "confidence": 0.35240186378359795
+        }
+      ]
+    },
+    {
+      "text": "Har saans pe naam tera",
+      "start": 114.66,
+      "end": 117.86,
+      "words": [
+        {
+          "text": "har",
+          "start": 114.66,
+          "end": 114.94,
+          "confidence": 0.48633817831675213
+        },
+        {
+          "text": "saans",
+          "start": 115.16,
+          "end": 115.82,
+          "confidence": 0.354015427082777
+        },
+        {
+          "text": "pe",
+          "start": 116.16,
+          "end": 116.3,
+          "confidence": 0.5110954344272614
+        },
+        {
+          "text": "naam",
+          "start": 116.44,
+          "end": 117.04,
+          "confidence": 0.44153039902448654
+        },
+        {
+          "text": "tera",
+          "start": 117.38,
+          "end": 117.86,
+          "confidence": 0.3187060095369816
+        }
+      ]
+    },
+    {
+      "text": "Kyun ki tum hi ho",
+      "start": 122.36,
+      "end": 123.9,
+      "words": [
+        {
+          "text": "kyun",
+          "start": 122.36,
+          "end": 122.58,
+          "confidence": 0.36841288954019547
+        },
+        {
+          "text": "ki",
+          "start": 122.6,
+          "end": 122.7,
+          "confidence": 0.5419464558362961
+        },
+        {
+          "text": "tum",
+          "start": 122.82,
+          "end": 123.18,
+          "confidence": 0.4767078161239624
+        },
+        {
+          "text": "hi",
+          "start": 123.52,
+          "end": 123.66,
+          "confidence": 0.5287503898143768
+        },
+        {
+          "text": "ho",
+          "start": 123.8,
+          "end": 123.9,
+          "confidence": 0.48505689203739166
+        }
+      ]
+    },
+    {
+      "text": "Ab tum hi ho",
+      "start": 125.08,
+      "end": 126.58,
+      "words": [
+        {
+          "text": "ab",
+          "start": 125.08,
+          "end": 125.24,
+          "confidence": 0.5758245587348938
+        },
+        {
+          "text": "tum",
+          "start": 125.38,
+          "end": 125.7,
+          "confidence": 0.3332607044915979
+        },
+        {
+          "text": "hi",
+          "start": 126.12,
+          "end": 126.24,
+          "confidence": 0.5854092538356781
+        },
+        {
+          "text": "ho",
+          "start": 126.46,
+          "end": 126.58,
+          "confidence": 0.5036178827285767
+        }
+      ]
+    },
+    {
+      "text": "Zindagi ab tum hi ho",
+      "start": 127.88,
+      "end": 131.52,
+      "words": [
+        {
+          "text": "zindagi",
+          "start": 127.88,
+          "end": 128.98,
+          "confidence": 0.4815466659409659
+        },
+        {
+          "text": "ab",
+          "start": 130.26,
+          "end": 130.36,
+          "confidence": 0.48700712621212006
+        },
+        {
+          "text": "tum",
+          "start": 130.48,
+          "end": 130.74,
+          "confidence": 0.4973186155160268
+        },
+        {
+          "text": "hi",
+          "start": 131.14,
+          "end": 131.26,
+          "confidence": 0.6332811564207077
+        },
+        {
+          "text": "ho",
+          "start": 131.42,
+          "end": 131.52,
+          "confidence": 0.4825587123632431
+        }
+      ]
+    },
+    {
+      "text": "Chain bhi",
+      "start": 133.06,
+      "end": 134.12,
+      "words": [
+        {
+          "text": "chain",
+          "start": 133.06,
+          "end": 133.72,
+          "confidence": 0.4500466804020107
+        },
+        {
+          "text": "bhi",
+          "start": 133.98,
+          "end": 134.12,
+          "confidence": 0.4874973992506663
+        }
+      ]
+    },
+    {
+      "text": "Mera dard bhi",
+      "start": 135.2,
+      "end": 136.7,
+      "words": [
+        {
+          "text": "mera",
+          "start": 135.2,
+          "end": 135.5,
+          "confidence": 0.6062686443328857
+        },
+        {
+          "text": "dard",
+          "start": 135.6,
+          "end": 136.28,
+          "confidence": 0.565988302230835
+        },
+        {
+          "text": "bhi",
+          "start": 136.54,
+          "end": 136.7,
+          "confidence": 0.531954695781072
+        }
+      ]
+    },
+    {
+      "text": "Meri aashiqui ab tum hi ho",
+      "start": 137.78,
+      "end": 141.8,
+      "words": [
+        {
+          "text": "meri",
+          "start": 137.78,
+          "end": 138.12,
+          "confidence": 0.6042088866233826
+        },
+        {
+          "text": "aashiqui",
+          "start": 138.28,
+          "end": 139.2,
+          "confidence": 0.25746609321504366
+        },
+        {
+          "text": "ab",
+          "start": 140.46,
+          "end": 140.58,
+          "confidence": 0.48600050806999207
+        },
+        {
+          "text": "tum",
+          "start": 140.72,
+          "end": 141.0,
+          "confidence": 0.43453385432561237
+        },
+        {
+          "text": "hi",
+          "start": 141.4,
+          "end": 141.52,
+          "confidence": 0.6329213380813599
+        },
+        {
+          "text": "ho",
+          "start": 141.7,
+          "end": 141.8,
+          "confidence": 0.4665584862232208
+        }
+      ]
+    },
+    {
+      "text": "Tum hi ho",
+      "start": 151.14,
+      "end": 153.08,
+      "words": [
+        {
+          "text": "tum",
+          "start": 151.14,
+          "end": 151.52,
+          "confidence": 0.008367984555661678
+        },
+        {
+          "text": "hi",
+          "start": 151.82,
+          "end": 151.9,
+          "confidence": 0.019120987504720688
+        },
+        {
+          "text": "ho",
+          "start": 153.0,
+          "end": 153.08,
+          "confidence": 0.10358874872326851
+        }
+      ]
+    },
+    {
+      "text": "Tum hi ho",
+      "start": 160.5,
+      "end": 163.18,
+      "words": [
+        {
+          "text": "tum",
+          "start": 160.5,
+          "end": 160.92,
+          "confidence": 0.054005964348713555
+        },
+        {
+          "text": "hi",
+          "start": 161.8,
+          "end": 161.9,
+          "confidence": 0.08546419814229012
+        },
+        {
+          "text": "ho",
+          "start": 163.08,
+          "end": 163.18,
+          "confidence": 0.02946416288614273
+        }
+      ]
+    },
+    {
+      "text": "Tere liye hi jiya main",
+      "start": 172.92,
+      "end": 177.7,
+      "words": [
+        {
+          "text": "tere",
+          "start": 172.92,
+          "end": 173.38,
+          "confidence": 0.26055102050304413
+        },
+        {
+          "text": "liye",
+          "start": 173.56,
+          "end": 174.0,
+          "confidence": 0.14854667708277702
+        },
+        {
+          "text": "hi",
+          "start": 175.74,
+          "end": 175.86,
+          "confidence": 0.15244078636169434
+        },
+        {
+          "text": "jiya",
+          "start": 176.1,
+          "end": 176.56,
+          "confidence": 0.18843164201825857
+        },
+        {
+          "text": "main",
+          "start": 177.06,
+          "end": 177.7,
+          "confidence": 0.06098375405417755
+        }
+      ]
+    },
+    {
+      "text": "Khudko jo yun de diya hai",
+      "start": 178.02,
+      "end": 182.84,
+      "words": [
+        {
+          "text": "khudko",
+          "start": 178.02,
+          "end": 178.44,
+          "confidence": 0.1387370958303412
+        },
+        {
+          "text": "jo",
+          "start": 178.66,
+          "end": 178.78,
+          "confidence": 0.21992254257202148
+        },
+        {
+          "text": "yun",
+          "start": 179.0,
+          "end": 179.46,
+          "confidence": 0.06254486739635468
+        },
+        {
+          "text": "de",
+          "start": 180.9,
+          "end": 181.02,
+          "confidence": 0.2995135858654976
+        },
+        {
+          "text": "diya",
+          "start": 181.24,
+          "end": 181.7,
+          "confidence": 0.29145816527307034
+        },
+        {
+          "text": "hai",
+          "start": 182.24,
+          "end": 182.84,
+          "confidence": 0.07407726184464991
+        }
+      ]
+    },
+    {
+      "text": "Tere wafa ne mujhko sambhala;",
+      "start": 183.12,
+      "end": 187.46,
+      "words": [
+        {
+          "text": "tere",
+          "start": 183.12,
+          "end": 183.58,
+          "confidence": 0.18263461766764522
+        },
+        {
+          "text": "wafa",
+          "start": 183.76,
+          "end": 184.24,
+          "confidence": 0.15112261334434152
+        },
+        {
+          "text": "ne",
+          "start": 184.74,
+          "end": 184.88,
+          "confidence": 0.2235577180981636
+        },
+        {
+          "text": "mujhko",
+          "start": 185.04,
+          "end": 185.78,
+          "confidence": 0.22607183766861758
+        },
+        {
+          "text": "sambhala",
+          "start": 186.34,
+          "end": 187.46,
+          "confidence": 0.46931804344058037
+        }
+      ]
+    },
+    {
+      "text": "Saare ghamon ko dil se nikala",
+      "start": 188.24,
+      "end": 192.56,
+      "words": [
+        {
+          "text": "saare",
+          "start": 188.24,
+          "end": 188.72,
+          "confidence": 0.20925393812358378
+        },
+        {
+          "text": "ghamon",
+          "start": 188.9,
+          "end": 189.62,
+          "confidence": 0.1786212457033495
+        },
+        {
+          "text": "ko",
+          "start": 189.84,
+          "end": 189.96,
+          "confidence": 0.23994692414999008
+        },
+        {
+          "text": "dil",
+          "start": 190.2,
+          "end": 190.58,
+          "confidence": 0.1256603873722876
+        },
+        {
+          "text": "se",
+          "start": 190.84,
+          "end": 190.98,
+          "confidence": 0.3449662774801254
+        },
+        {
+          "text": "nikala",
+          "start": 191.42,
+          "end": 192.56,
+          "confidence": 0.35599879920482635
+        }
+      ]
+    },
+    {
+      "text": "Tere saath mera hai naseeb juda",
+      "start": 193.68,
+      "end": 198.22,
+      "words": [
+        {
+          "text": "tere",
+          "start": 193.68,
+          "end": 194.14,
+          "confidence": 0.5036552995443344
+        },
+        {
+          "text": "saath",
+          "start": 194.28,
+          "end": 195.0,
+          "confidence": 0.4802813738584518
+        },
+        {
+          "text": "mera",
+          "start": 195.28,
+          "end": 195.72,
+          "confidence": 0.5610369332134724
+        },
+        {
+          "text": "hai",
+          "start": 196.24,
+          "end": 196.42,
+          "confidence": 0.39869209689398605
+        },
+        {
+          "text": "naseeb",
+          "start": 196.5,
+          "end": 197.52,
+          "confidence": 0.3704403142134349
+        },
+        {
+          "text": "juda",
+          "start": 197.78,
+          "end": 198.22,
+          "confidence": 0.6226350292563438
+        }
+      ]
+    },
+    {
+      "text": "Tujhe paake addhura na raha",
+      "start": 198.94,
+      "end": 202.42,
+      "words": [
+        {
+          "text": "tujhe",
+          "start": 198.94,
+          "end": 199.3,
+          "confidence": 0.4662902057170868
+        },
+        {
+          "text": "paake",
+          "start": 199.44,
+          "end": 200.18,
+          "confidence": 0.5167411178350448
+        },
+        {
+          "text": "addhura",
+          "start": 200.48,
+          "end": 201.44,
+          "confidence": 0.43663147293097737
+        },
+        {
+          "text": "na",
+          "start": 201.66,
+          "end": 201.76,
+          "confidence": 0.42972027510404587
+        },
+        {
+          "text": "raha",
+          "start": 201.96,
+          "end": 202.42,
+          "confidence": 0.619236171245575
+        }
+      ]
+    },
+    {
+      "text": "Mmm",
+      "start": 202.42,
+      "end": 204.28,
+      "words": [
+        {
+          "text": "mmm",
+          "start": 202.42,
+          "end": 204.28,
+          "confidence": 0.0008657993166707456
+        }
+      ]
+    },
+    {
+      "text": "Kyun ki tum hi ho",
+      "start": 206.58,
+      "end": 208.1,
+      "words": [
+        {
+          "text": "kyun",
+          "start": 206.58,
+          "end": 206.78,
+          "confidence": 0.32064935751259327
+        },
+        {
+          "text": "ki",
+          "start": 206.82,
+          "end": 206.9,
+          "confidence": 0.49248191714286804
+        },
+        {
+          "text": "tum",
+          "start": 207.02,
+          "end": 207.3,
+          "confidence": 0.46321968237559
+        },
+        {
+          "text": "hi",
+          "start": 207.72,
+          "end": 207.84,
+          "confidence": 0.5103457570075989
+        },
+        {
+          "text": "ho",
+          "start": 208.0,
+          "end": 208.1,
+          "confidence": 0.4546135514974594
+        }
+      ]
+    },
+    {
+      "text": "Ab tum hi ho",
+      "start": 209.28,
+      "end": 210.8,
+      "words": [
+        {
+          "text": "ab",
+          "start": 209.28,
+          "end": 209.46,
+          "confidence": 0.4145476371049881
+        },
+        {
+          "text": "tum",
+          "start": 209.6,
+          "end": 209.86,
+          "confidence": 0.54762864112854
+        },
+        {
+          "text": "hi",
+          "start": 210.32,
+          "end": 210.56,
+          "confidence": 0.41077594831585884
+        },
+        {
+          "text": "ho",
+          "start": 210.66,
+          "end": 210.8,
+          "confidence": 0.5356843769550323
+        }
+      ]
+    },
+    {
+      "text": "Zindagi ab tum hi ho",
+      "start": 212.08,
+      "end": 215.7,
+      "words": [
+        {
+          "text": "zindagi",
+          "start": 212.08,
+          "end": 213.18,
+          "confidence": 0.4639035165309906
+        },
+        {
+          "text": "ab",
+          "start": 214.46,
+          "end": 214.56,
+          "confidence": 0.48848357796669006
+        },
+        {
+          "text": "tum",
+          "start": 214.68,
+          "end": 214.92,
+          "confidence": 0.510666181643804
+        },
+        {
+          "text": "hi",
+          "start": 215.34,
+          "end": 215.44,
+          "confidence": 0.31465958058834076
+        },
+        {
+          "text": "ho",
+          "start": 215.62,
+          "end": 215.7,
+          "confidence": 0.4792448431253433
+        }
+      ]
+    },
+    {
+      "text": "Chain bhi",
+      "start": 217.26,
+      "end": 218.3,
+      "words": [
+        {
+          "text": "chain",
+          "start": 217.26,
+          "end": 217.92,
+          "confidence": 0.4478989107534289
+        },
+        {
+          "text": "bhi",
+          "start": 218.18,
+          "end": 218.3,
+          "confidence": 0.3233476479848226
+        }
+      ]
+    },
+    {
+      "text": "Mera dard bhi",
+      "start": 219.4,
+      "end": 220.9,
+      "words": [
+        {
+          "text": "mera",
+          "start": 219.4,
+          "end": 219.68,
+          "confidence": 0.6193718463182449
+        },
+        {
+          "text": "dard",
+          "start": 219.8,
+          "end": 220.5,
+          "confidence": 0.5046271532773972
+        },
+        {
+          "text": "bhi",
+          "start": 220.74,
+          "end": 220.9,
+          "confidence": 0.5502556363741556
+        }
+      ]
+    },
+    {
+      "text": "Meri aashiqui ab tum hi ho",
+      "start": 222.04,
+      "end": 226.08,
+      "words": [
+        {
+          "text": "meri",
+          "start": 222.04,
+          "end": 222.38,
+          "confidence": 0.5228050425648689
+        },
+        {
+          "text": "aashiqui",
+          "start": 222.52,
+          "end": 223.74,
+          "confidence": 0.2211645538045559
+        },
+        {
+          "text": "ab",
+          "start": 224.7,
+          "end": 224.82,
+          "confidence": 0.567674458026886
+        },
+        {
+          "text": "tum",
+          "start": 224.96,
+          "end": 225.2,
+          "confidence": 0.569235642751058
+        },
+        {
+          "text": "hi",
+          "start": 225.64,
+          "end": 225.76,
+          "confidence": 0.560104712843895
+        },
+        {
+          "text": "ho",
+          "start": 225.96,
+          "end": 226.08,
+          "confidence": 0.5488864332437515
+        }
+      ]
+    },
+    {
+      "text": "Kyun ki tum hi ho",
+      "start": 227.0,
+      "end": 228.56,
+      "words": [
+        {
+          "text": "kyun",
+          "start": 227.0,
+          "end": 227.24,
+          "confidence": 0.31316941045224667
+        },
+        {
+          "text": "ki",
+          "start": 227.26,
+          "end": 227.34,
+          "confidence": 0.3175564184784889
+        },
+        {
+          "text": "tum",
+          "start": 227.46,
+          "end": 227.74,
+          "confidence": 0.305753822127978
+        },
+        {
+          "text": "hi",
+          "start": 228.14,
+          "end": 228.24,
+          "confidence": 0.21113745868206024
+        },
+        {
+          "text": "ho",
+          "start": 228.46,
+          "end": 228.56,
+          "confidence": 0.18470650911331177
+        }
+      ]
+    },
+    {
+      "text": "Ab tum hi ho",
+      "start": 229.74,
+      "end": 231.1,
+      "words": [
+        {
+          "text": "ab",
+          "start": 229.74,
+          "end": 229.88,
+          "confidence": 0.2593557685613632
+        },
+        {
+          "text": "tum",
+          "start": 230.04,
+          "end": 230.32,
+          "confidence": 0.25954218705495197
+        },
+        {
+          "text": "hi",
+          "start": 230.66,
+          "end": 230.78,
+          "confidence": 0.23614151030778885
+        },
+        {
+          "text": "ho",
+          "start": 231.0,
+          "end": 231.1,
+          "confidence": 0.1923328936100006
+        }
+      ]
+    },
+    {
+      "text": "Zindagi ab tum hi ho",
+      "start": 232.58,
+      "end": 236.22,
+      "words": [
+        {
+          "text": "zindagi",
+          "start": 232.58,
+          "end": 233.68,
+          "confidence": 0.12787752971053123
+        },
+        {
+          "text": "ab",
+          "start": 234.9,
+          "end": 235.02,
+          "confidence": 0.08894743397831917
+        },
+        {
+          "text": "tum",
+          "start": 235.16,
+          "end": 235.52,
+          "confidence": 0.05875047047932943
+        },
+        {
+          "text": "hi",
+          "start": 235.8,
+          "end": 235.9,
+          "confidence": 0.09433398395776749
+        },
+        {
+          "text": "ho",
+          "start": 236.1,
+          "end": 236.22,
+          "confidence": 0.09074028208851814
+        }
+      ]
+    },
+    {
+      "text": "Chain bhi",
+      "start": 237.66,
+      "end": 238.8,
+      "words": [
+        {
+          "text": "chain",
+          "start": 237.66,
+          "end": 238.38,
+          "confidence": 0.16910831443965435
+        },
+        {
+          "text": "bhi",
+          "start": 238.66,
+          "end": 238.8,
+          "confidence": 0.1374158188700676
+        }
+      ]
+    },
+    {
+      "text": "Mera dard bhi",
+      "start": 239.82,
+      "end": 241.34,
+      "words": [
+        {
+          "text": "mera",
+          "start": 239.82,
+          "end": 240.14,
+          "confidence": 0.2521776184439659
+        },
+        {
+          "text": "dard",
+          "start": 240.24,
+          "end": 240.88,
+          "confidence": 0.17586124129593372
+        },
+        {
+          "text": "bhi",
+          "start": 241.18,
+          "end": 241.34,
+          "confidence": 0.23475526521603265
+        }
+      ]
+    },
+    {
+      "text": "Meri aashiqui ab tum hi ho",
+      "start": 242.44,
+      "end": 246.4,
+      "words": [
+        {
+          "text": "meri",
+          "start": 242.44,
+          "end": 242.78,
+          "confidence": 0.42474666237831116
+        },
+        {
+          "text": "aashiqui",
+          "start": 242.92,
+          "end": 244.32,
+          "confidence": 0.20768735249293968
+        },
+        {
+          "text": "ab",
+          "start": 245.08,
+          "end": 245.22,
+          "confidence": 0.24998804926872253
+        },
+        {
+          "text": "tum",
+          "start": 245.38,
+          "end": 245.7,
+          "confidence": 0.22254374623298645
+        },
+        {
+          "text": "hi",
+          "start": 245.98,
+          "end": 246.08,
+          "confidence": 0.15294967591762543
+        },
+        {
+          "text": "ho",
+          "start": 246.3,
+          "end": 246.4,
+          "confidence": 0.26144175231456757
+        }
+      ]
+    }
+  ],
+  "confidence": 0.3928799702112106,
+  "timing_source": "ctc_aligned",
+  "cached": false,
+  "detected_language": "hi",
+  "processing_time_seconds": 161.83672904968262
+}

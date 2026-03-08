@@ -1,0 +1,29 @@
+# F3 Real Manual QA Summary
+Date: 2026-03-08
+
+## Song 1: Rick Astley - Never Gonna Give You Up
+- timing_source: ctc_aligned ✅
+- lines_count: 58 ✅
+- confidence: 0.122 (expected low for singing voice)
+- First line: "We're no strangers to love" ✅
+- PASS ✅
+
+## Song 2: Johann Sebastian Bach - Toccata and Fugue in D minor (graceful skip)
+- timing_source: no_lyrics ✅
+- lines_count: 0 ✅
+- confidence: 0.0 ✅
+- PASS ✅
+
+## Bugs Found and Fixed During QA
+1. Hyphen blank token crash: normalize_for_alignment() allowed hyphens through, 
+   but '-' maps to token index 0 (blank) in MMS_FA, causing forced_align to crash.
+   Fix: replace hyphens with spaces before tokenization.
+   Commit: fix(alignment): replace hyphens with spaces to prevent CTC blank token crash
+
+2. LRCLIB 400 Bad Request with duration=0.0: When track duration is unknown (0.0),
+   LRCLIB returns 400 instead of 404, so the search fallback was never triggered.
+   Fix: pass None instead of 0.0 to fetch_lyrics.
+   Commit: fix(pipeline): pass None instead of 0.0 duration to LRCLIB to avoid 400 Bad Request
+
+## Verdict
+Songs [2/2 pass] | Timestamps valid [YES] | Graceful skip [YES] | VERDICT: APPROVE
