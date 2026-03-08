@@ -114,7 +114,7 @@ def test_overwrite_existing_entry(cache, sample_sync_result):
         track=sample_sync_result.track,
         lines=sample_sync_result.lines,
         confidence=0.75,  # Different confidence
-        timing_source="whisperx_aligned",  # Different source
+        timing_source="ctc_aligned",  # Different source
         processing_time_seconds=3.0,
     )
 
@@ -125,7 +125,7 @@ def test_overwrite_existing_entry(cache, sample_sync_result):
     retrieved = cache.get_cached("Yesterday", "The Beatles", 125.0)
     assert retrieved is not None
     assert retrieved.confidence == 0.75, "Should have updated confidence"
-    assert retrieved.timing_source == "whisperx_aligned", (
+    assert retrieved.timing_source == "ctc_aligned", (
         "Should have updated timing_source"
     )
 

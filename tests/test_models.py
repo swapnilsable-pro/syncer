@@ -96,7 +96,7 @@ class TestSyncResult:
             track=track,
             lines=lines,
             confidence=0.85,
-            timing_source="whisperx_only",
+            timing_source="ctc_aligned",
             cached=True,
             processing_time_seconds=45.5,
         )

@@ -1,0 +1,13 @@
+........................................................................ [ 36%]
+...........................F............................................ [ 73%]
+...................................................                      [100%]
+=================================== FAILURES ===================================
+_____________________ TestSettings.test_settings_defaults ______________________
+tests/test_models.py:182: in test_settings_defaults
+    assert settings.spotify_client_id == ""
+E   AssertionError: assert 'ad8cba48aeb5...ff0f14be724f1' == ''
+E     
+E     + ad8cba48aeb5480b909ff0f14be724f1
+=========================== short test summary info ============================
+FAILED tests/test_models.py::TestSettings::test_settings_defaults - Assertion...
+1 failed, 194 passed, 14 deselected in 3.78s

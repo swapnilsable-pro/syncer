@@ -1,4 +1,4 @@
-"""ML smoke tests — verify Demucs and WhisperX load and produce output."""
+"""ML smoke tests — verify Demucs and CTC alignment load and produce output."""
 
 import pytest
 
@@ -19,17 +19,16 @@ def test_demucs_loads():
     assert "vocals" in model.sources
 
 
-def test_whisperx_loads():
-    import whisperx
+def test_ctc_aligner_loads():
+    import torchaudio
 
-    device = "cpu"
-    model = whisperx.load_model("base", device, compute_type="float32")
-    assert model is not None
+    bundle = torchaudio.pipelines.MMS_FA
+    assert bundle is not None
 
 
 @pytest.mark.slow
 def test_full_pipeline():
-    """Full smoke test: download, separate, align."""
+    """Full smoke test: download, separate, align with CTCAligner."""
     import gc
     import json
     import subprocess
@@ -38,9 +37,10 @@ def test_full_pipeline():
 
     import torch
     import torchaudio
-    import whisperx
     from demucs.apply import apply_model
     from demucs.pretrained import get_model
+
+    from syncer.alignment.ctc_aligner import CTCAligner
 
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     evidence = {
@@ -98,7 +98,7 @@ def test_full_pipeline():
         assert vocals.shape[-1] > 0, "Vocals tensor is empty"
         evidence["vocals_shape"] = list(vocals.shape)
 
-        # Save vocals to WAV for WhisperX
+        # Save vocals to WAV for CTC alignment
         vocals_path = Path(tmpdir) / "vocals.wav"
         # Denormalize
         vocals_out = vocals * ref.std() + ref.mean()
@@ -108,40 +108,31 @@ def test_full_pipeline():
         del model, sources, waveform, waveform_norm
         gc.collect()
 
-        # WhisperX transcribe + align
-        wx_model = whisperx.load_model("base", "cpu", compute_type="float32")
-        audio = whisperx.load_audio(str(vocals_path))
-        result = wx_model.transcribe(audio, batch_size=8)
-        assert "segments" in result
+        # CTC forced alignment with CTCAligner
+        lyrics = ["we're no strangers to love you know the rules and so do i"]
+        aligner = CTCAligner(device="cpu")
+        alignment = aligner.align(vocals_path, lyrics, language="eng")
 
-        # Free transcription model before loading alignment model
-        del wx_model
-        gc.collect()
+        assert len(alignment.words) > 0, "No word timestamps produced"
 
-        model_a, metadata = whisperx.load_align_model(language_code="en", device="cpu")
-        result = whisperx.align(result["segments"], model_a, metadata, audio, "cpu")
+        # Each word should have start, end, score
+        first_word = alignment.words[0]
+        assert first_word.start >= 0
+        assert first_word.end > first_word.start
+        assert hasattr(first_word, "score")
 
-        # Verify word-level timestamps
-        all_words = []
-        for seg in result["segments"]:
-            all_words.extend(seg.get("words", []))
-
-        assert len(all_words) > 0, "No word timestamps produced"
-
-        # Each word should have start, end
-        first_word = all_words[0]
-        assert "start" in first_word
-        assert "end" in first_word
-
-        evidence["word_timestamps"] = all_words[:10]  # First 10 words
-        evidence["total_words"] = len(all_words)
+        evidence["word_timestamps"] = [
+            {"word": w.word, "start": w.start, "end": w.end, "score": w.score}
+            for w in alignment.words[:10]
+        ]
+        evidence["total_words"] = len(alignment.words)
 
         # Save evidence
         evidence_dir = Path(__file__).parent.parent / ".sisyphus" / "evidence"
         evidence_dir.mkdir(parents=True, exist_ok=True)
-        with open(evidence_dir / "task-1-smoke-pipeline.json", "w") as f:
+        with open(evidence_dir / "task-2-smoke-pipeline.json", "w") as f:
             json.dump(evidence, f, indent=2, default=str)
 
         # Free alignment model
-        del model_a, metadata
+        del aligner
         gc.collect()

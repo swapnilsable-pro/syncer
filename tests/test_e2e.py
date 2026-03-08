@@ -29,9 +29,8 @@ def test_yesterday_beatles(pipeline):
     assert result.confidence > 0.0
     assert result.timing_source in (
         "lrclib_synced",
-        "lrclib_enhanced",
-        "whisperx_aligned",
-        "whisperx_only",
+        "ctc_aligned",
+        "no_lyrics",
     )
 
 
