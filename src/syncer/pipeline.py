@@ -116,7 +116,6 @@ class SyncPipeline:
             lrclib_result = fetch_lyrics(
                 track_info.title, track_info.artist,
                 track_info.duration if track_info.duration else None,
-                track_info.title, track_info.artist, track_info.duration
             )
             if lrclib_result is not None:
                 if lrclib_result.synced_lyrics:
@@ -215,7 +214,6 @@ class SyncPipeline:
                     lrclib_result = fetch_lyrics(
                         track_info.title, track_info.artist,
                         track_info.duration if track_info.duration else None,
-                        track_info.title, track_info.artist, track_info.duration
                     )
                     if lrclib_result is not None:
                         if lrclib_result.synced_lyrics:
