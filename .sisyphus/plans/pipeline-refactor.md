@@ -782,7 +782,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `src/syncer/pipeline.py`, `tests/test_pipeline.py`
   - Pre-commit: `python -m pytest tests/test_pipeline.py -v`
 
-- [ ] 8. Delete Old Modules + Remove Dead Dependencies
+- [x] 8. Delete Old Modules + Remove Dead Dependencies
 
   **What to do**:
   - DELETE `src/syncer/alignment/whisperx_aligner.py` entirely
@@ -853,7 +853,7 @@ Max Concurrent: 4 (Wave 1)
   - Message: `chore: remove WhisperX aligner, snap.py, and associated tests`
   - Files: (deletions) `src/syncer/alignment/whisperx_aligner.py`, `src/syncer/alignment/snap.py`, `tests/test_whisperx_aligner.py`, `tests/test_snap.py`
 
-- [ ] 9. Update All Remaining Tests
+- [x] 9. Update All Remaining Tests
 
   **What to do**:
   - Update `tests/test_smoke.py`:
@@ -935,7 +935,7 @@ Max Concurrent: 4 (Wave 1)
   - Files: `tests/test_smoke.py`, `tests/test_e2e.py`, `tests/test_models.py`, `tests/test_cache.py`
   - Pre-commit: `python -m pytest tests/ -m 'not slow and not integration' -q`
 
-- [ ] 10. Cache Clear + Migration
+- [x] 10. Cache Clear + Migration
 
   **What to do**:
   - Add a `clear_all()` method to `CacheManager` in `src/syncer/cache.py` if one doesn't exist:
@@ -1014,11 +1014,11 @@ Max Concurrent: 4 (Wave 1)
 
 > 4 review agents run in PARALLEL. ALL must APPROVE. Rejection → fix → re-run.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `python -m pytest tests/ -m "not slow and not integration"` + check all changed files for: `as any`, empty catches, `print()` in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names. Verify no WhisperX references remain.
   Output: `Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
@@ -1026,7 +1026,7 @@ Max Concurrent: 4 (Wave 1)
   Start FastAPI server. Run 3 reference songs through CLI: (1) English song with LRCLIB lyrics, (2) Song with no LRCLIB lyrics (verify graceful skip), (3) Hindi song if uroman works. Verify word timestamps are sensible (start < end, sequential, within song duration). Save outputs to `.sisyphus/evidence/final-qa/`.
   Output: `Songs [N/N pass] | Timestamps valid [YES/NO] | Graceful skip [YES/NO] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   For each task: read "What to do", read actual diff. Verify 1:1 — everything in spec was built, nothing beyond spec was built. Check "Must NOT do" compliance. Detect unaccounted changes. Verify Demucs/LRCLIB/YouTube/Spotify clients were NOT touched.
   Output: `Tasks [N/N compliant] | Unaccounted [CLEAN/N files] | VERDICT`
 

@@ -35,8 +35,11 @@ class TestNormalizeForAlignment:
     def test_digits_stripped_from_mixed_word(self):
         assert normalize_for_alignment("24K Magic") == ["k", "magic"]
 
-    def test_hyphen_preserved(self):
-        assert normalize_for_alignment("rock-n-roll") == ["rock-n-roll"]
+    def test_hyphenated_word_splits(self):
+        """Hyphens should be replaced with spaces, splitting words."""
+        assert normalize_for_alignment("never-ending") == ["never", "ending"]
+        assert normalize_for_alignment("rock-and-roll") == ["rock", "and", "roll"]
+        assert normalize_for_alignment("self-control") == ["self", "control"]
 
     def test_all_punctuation_line(self):
         assert normalize_for_alignment("!!!") == []
@@ -66,7 +69,7 @@ class TestNormalizeForAlignment:
         assert normalize_for_alignment("123 456") == []
 
     def test_mixed_punctuation_and_words(self):
-        assert normalize_for_alignment("...hello---world...") == ["hello---world"]
+        assert normalize_for_alignment("...hello world...") == ["hello", "world"]
 
     def test_unicode_accented_latin(self):
         # Accented chars should go through romanize path; result should be lowercase

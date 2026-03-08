@@ -1,0 +1,17 @@
+DEBUG: connect_tcp.started host='lrclib.net' port=443 local_address=None timeout=5.0 socket_options=None
+DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x129cc4290>
+DEBUG: start_tls.started ssl_context=<ssl.SSLContext object at 0x129d0a2d0> server_hostname='lrclib.net' timeout=5.0
+DEBUG: start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x10de8a6f0>
+DEBUG: send_request_headers.started request=<Request [b'GET']>
+DEBUG: send_request_headers.complete
+DEBUG: send_request_body.started request=<Request [b'GET']>
+DEBUG: send_request_body.complete
+DEBUG: receive_response_headers.started request=<Request [b'GET']>
+DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 400, b'Bad Request', [(b'Server', b'nginx/1.26.3'), (b'Date', b'Sun, 08 Mar 2026 15:24:34 GMT'), (b'Content-Type', b'application/json'), (b'Content-Length', b'92'), (b'Connection', b'keep-alive'), (b'vary', b'origin, access-control-request-method, access-control-request-headers'), (b'access-control-allow-origin', b'*')])
+INFO: HTTP Request: GET https://lrclib.net/api/get?track_name=Never+Gonna+Give+You+Up&artist_name=Rick+Astley&duration=0.0 "HTTP/1.1 400 Bad Request"
+DEBUG: receive_response_body.started request=<Request [b'GET']>
+DEBUG: receive_response_body.complete
+DEBUG: response_closed.started
+DEBUG: response_closed.complete
+DEBUG: close.started
+DEBUG: close.complete

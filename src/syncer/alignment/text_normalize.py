@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 # Track if we've already warned about uroman being unavailable
 _uroman_warned = False
 
-# Regex: keep only a-z, apostrophe, hyphen, and whitespace
-_STRIP_PATTERN = re.compile(r"[^a-z'\-\s]")
+# Regex: keep only a-z, apostrophe, and whitespace (hyphens replaced with spaces)
+_STRIP_PATTERN = re.compile(r"[^a-z'\s]")
 
 # Regex: digits
 _DIGIT_PATTERN = re.compile(r"[0-9]")
@@ -68,8 +68,9 @@ def romanize(text: str) -> str:
 def normalize_for_alignment(text: str) -> list[str]:
     """Normalize raw lyrics line to safe word list for MMS_FA tokenizer.
 
-    The MMS_FA tokenizer only accepts: a-z, apostrophe ('), hyphen (-),
-    and space. Any other character causes a KeyError crash.
+    The MMS_FA tokenizer only accepts: a-z, apostrophe ('), and space. Hyphens
+    map to the blank token (index 0) and must be replaced with spaces. Any other
+    character causes a KeyError crash.
 
     Args:
         text: Raw lyrics line (may contain punctuation, digits, mixed case).
@@ -90,7 +91,10 @@ def normalize_for_alignment(text: str) -> list[str]:
     # Step 3: Remove digits
     text = _DIGIT_PATTERN.sub("", text)
 
-    # Step 4: Strip all characters except a-z, apostrophe, hyphen, whitespace
+    # Step 3.5: Replace hyphens with spaces (hyphen maps to blank token index 0 in MMS_FA)
+    text = text.replace("-", " ")
+
+    # Step 4: Strip all characters except a-z, apostrophe, whitespace
     text = _STRIP_PATTERN.sub("", text)
 
     # Step 5: Split on whitespace, strip each token, drop empties

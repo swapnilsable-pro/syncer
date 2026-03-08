@@ -146,3 +146,73 @@ Wave 1 effective: 3 parallel streams: (Task1+4), Task2, Task3
 - No more "whisperx_only" or "lrclib_enhanced" timing_source values
 - `_build_synced_lines` handles CTC dropping words gracefully (Python slice doesn't raise on out-of-bounds)
 - YouTube URLs with unknown titles + no LRCLIB lyrics → graceful skip (no longer attempts audio extraction)
+
+## Task 8: Delete WhisperX and Snap Modules (2026-03-08)
+
+**Completed**: Successfully removed obsolete WhisperX aligner and snap.py modules.
+
+### Files Deleted
+- `src/syncer/alignment/whisperx_aligner.py` (121 lines)
+- `src/syncer/alignment/snap.py` (352 lines)
+- `tests/test_whisperx_aligner.py` (12,137 bytes)
+- `tests/test_snap.py` (7,895 bytes)
+
+### Verification
+- Dangling imports check: 0 matches for `whisperx_aligner` or `from syncer.alignment.snap` (excluding __pycache__)
+- Test suite: 194 passed, 1 pre-existing failure (test_settings_defaults), 14 deselected
+- No import errors introduced
+
+### Key Insight
+Task 7 (pipeline rewrite) successfully eliminated all dependencies on these modules:
+- `pipeline.py` no longer imports from snap or whisperx_aligner
+- `compute_confidence()` was already relocated to `src/syncer/alignment/__init__.py` in Task 2
+- Safe to delete without breaking any functionality
+
+### Commit
+`chore: remove WhisperX aligner, snap.py, and associated tests` (commit b40093c)
+
+## Task 10: Cache Clear Method (2026-03-08)
+
+**Completed**: Added `clear_all()` method to CacheManager and created clear_cache.py script.
+
+### Implementation Details
+- `clear_all()` method in `src/syncer/cache.py`:
+  - Returns `int` (count of entries cleared)
+  - Deletes all rows from `sync_results` and `tracks` tables
+  - Includes error handling with logging
+  - Follows existing `_connect()` pattern for database access
+
+### Script Details
+- `scripts/clear_cache.py` created:
+  - Imports CacheManager and Settings correctly
+  - Displays before/after entry counts
+  - Asserts final state is 0 entries
+  - Idempotent: runs twice without error
+
+### Test Results
+- First run: Cleared 12 stale WhisperX-era entries
+- Second run: 0 entries (idempotent, no crash)
+- Final verification: `len(cache.list_tracks())` returns 0
+
+### Key Insight
+CacheManager uses sqlite3 directly (no ORM). The `_connect()` context manager pattern ensures proper connection handling. No schema changes needed — just DELETE operations on existing tables.
+
+### Commit
+`chore: add cache clear method and clear stale WhisperX-era entries` (commit 7833172)
+
+## Task 9: Update Remaining Test Files (2026-03-08)
+
+**Completed**: All test files updated to remove WhisperX references and use CTC alignment terminology.
+
+### Files Changed
+- `tests/test_smoke.py`: Replaced `test_whisperx_loads()` with `test_ctc_aligner_loads()` (uses `torchaudio.pipelines.MMS_FA`); rewrote `test_full_pipeline()` to use `CTCAligner` instead of whisperx; updated docstring
+- `tests/test_e2e.py`: Updated `timing_source` assertion from `("lrclib_synced", "lrclib_enhanced", "whisperx_aligned", "whisperx_only")` to `("lrclib_synced", "ctc_aligned", "no_lyrics")`
+- `tests/test_models.py`: Changed `timing_source="whisperx_only"` to `"ctc_aligned"` in `test_sync_result_with_optional_fields`
+- `tests/test_cache.py`: Changed `timing_source="whisperx_aligned"` to `"ctc_aligned"` in `test_overwrite_existing_entry`
+
+### Verification
+- `grep -rn 'whisperx\|WhisperX\|whisper_x' tests/` → 0 matches
+- 194 passed, 1 pre-existing failure (test_settings_defaults from .env), 14 deselected
+
+### Key Insight
+Settings tests (ctc_device, ctc_model) were already updated in Task 3. Only the timing_source strings and WhisperX imports/usage needed updating in Task 9.

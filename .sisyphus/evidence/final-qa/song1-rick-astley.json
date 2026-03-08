@@ -1,0 +1,11 @@
+[download]   0.0% of    3.27MiB at  139.42KiB/s ETA 00:24Step 1: Fetching lyrics from LRCLIB...
+  Lines: 58
+  First line: We're no strangers to love
+Step 2: Searching YouTube...
+  URL: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+Step 3: Extracting audio...
+[download]   0.1% of    3.27MiB at  402.59KiB/s ETA 00:08[download]   0.2% of    3.27MiB at  918.16KiB/s ETA 00:03[download]   0.4% of    3.27MiB at    1.88MiB/s ETA 00:01[download]   0.9% of    3.27MiB at    1.63MiB/s ETA 00:01[download]   1.9% of    3.27MiB at    1.36MiB/s ETA 00:02[download]   3.8% of    3.27MiB at  638.79KiB/s ETA 00:05[download]   7.6% of    3.27MiB at  641.51KiB/s ETA 00:04[download]  15.2% of    3.27MiB at  935.88KiB/s ETA 00:03[download]  30.5% of    3.27MiB at    1.26MiB/s ETA 00:01[download]  61.0% of    3.27MiB at    2.01MiB/s ETA 00:00[download] 100.0% of    3.27MiB at    2.88MiB/s ETA 00:00[download] 100% of    3.27MiB in 00:00:01 at 1.77MiB/s                                                           Duration: 213.0s
+  Audio path: /var/folders/tb/ys5_39c97cl3x4dchj74q1bh0000gn/T/tmppe9qgg2m/dQw4w9WgXcQ.wav
+Step 4: Vocal separation (Demucs)...
+  Vocals: /var/folders/tb/ys5_39c97cl3x4dchj74q1bh0000gn/T/tmppe9qgg2m/vocals.wav
+Step 5: CTC alignment...
