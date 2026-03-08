@@ -9,7 +9,8 @@ from pathlib import Path
 
 from syncer.alignment.demucs_separator import VocalSeparator
 from syncer.alignment.whisperx_aligner import WordAligner
-from syncer.alignment.snap import snap_words_to_lyrics, compute_confidence
+from syncer.alignment.snap import snap_words_to_lyrics
+from syncer.alignment import compute_confidence
 from syncer.cache import CacheManager
 from syncer.clients.lrclib import fetch_lyrics, parse_lrc
 from syncer.clients.spotify import resolve_spotify_url, parse_spotify_url
@@ -32,9 +33,8 @@ class SyncPipeline:
         self.cache = CacheManager(settings.db_path)
         self.separator = VocalSeparator(settings.demucs_model)
         self.aligner = WordAligner(
-            settings.whisperx_model,
-            settings.whisperx_device,
-            settings.whisperx_compute_type,
+            settings.ctc_model,
+            settings.ctc_device,
         )
 
     def sync(self, request: SyncRequest) -> SyncResult:

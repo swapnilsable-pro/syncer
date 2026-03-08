@@ -46,7 +46,6 @@ def test_full_pipeline():
     evidence = {
         "device": device,
         "demucs_model": "htdemucs",
-        "whisperx_model": "base",
         "demucs_api": "pretrained.get_model + apply.apply_model",
     }
 

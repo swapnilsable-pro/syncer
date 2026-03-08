@@ -176,9 +176,8 @@ class TestSettings:
         settings = Settings()
         assert settings.cache_dir == Path.home() / ".syncer"
         assert settings.db_path == Path.home() / ".syncer" / "cache.db"
-        assert settings.whisperx_model == "base"
-        assert settings.whisperx_device == "cpu"
-        assert settings.whisperx_compute_type == "float32"
+        assert settings.ctc_device == "cpu"
+        assert settings.ctc_model == "MMS_FA"
         assert settings.demucs_model == "htdemucs"
         assert settings.spotify_client_id == ""
         assert settings.spotify_client_secret == ""
@@ -187,13 +186,11 @@ class TestSettings:
 
     def test_settings_env_override(self, monkeypatch):
         """Test that environment variables override defaults"""
-        monkeypatch.setenv("SYNCER_WHISPERX_MODEL", "large-v2")
-        monkeypatch.setenv("SYNCER_WHISPERX_DEVICE", "cuda")
+        monkeypatch.setenv("SYNCER_CTC_DEVICE", "cuda")
         monkeypatch.setenv("SYNCER_MAX_SONG_DURATION", "1200")
 
         settings = Settings()
-        assert settings.whisperx_model == "large-v2"
-        assert settings.whisperx_device == "cuda"
+        assert settings.ctc_device == "cuda"
         assert settings.max_song_duration == 1200
 
     def test_settings_cache_dir_contains_syncer(self):

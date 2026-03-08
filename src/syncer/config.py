@@ -7,9 +7,8 @@ class Settings(BaseSettings):
 
     cache_dir: Path = Path.home() / ".syncer"
     db_path: Path = Path.home() / ".syncer" / "cache.db"
-    whisperx_model: str = "base"  # or large-v2 for quality
-    whisperx_device: str = "cpu"
-    whisperx_compute_type: str = "float32"
+    ctc_device: str = "cpu"
+    ctc_model: str = "MMS_FA"
     demucs_model: str = "htdemucs"
     spotify_client_id: str = ""
     spotify_client_secret: str = ""

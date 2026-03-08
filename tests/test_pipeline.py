@@ -46,9 +46,6 @@ def _make_settings(tmp_path: Path) -> Settings:
     return Settings(
         db_path=tmp_path / "cache.db",
         cache_dir=tmp_path,
-        whisperx_model="base",
-        whisperx_device="cpu",
-        whisperx_compute_type="float32",
         demucs_model="htdemucs",
         spotify_client_id="",
         spotify_client_secret="",
