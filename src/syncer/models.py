@@ -40,6 +40,7 @@ class SyncRequest(BaseModel):
     title: str | None = None
     artist: str | None = None
     language: str | None = None
+    force: bool = False  # Skip cache, re-process from scratch
 
 
 class TrackSummary(BaseModel):

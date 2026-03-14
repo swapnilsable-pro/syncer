@@ -54,6 +54,32 @@ async def sync_lyrics(request: SyncRequest) -> SyncResult:
         raise HTTPException(500, str(e))
 
 
+@app.post("/api/retry/{track_id}")
+async def retry_track(track_id: str) -> SyncResult:
+    if _pipeline is None:
+        raise HTTPException(503, "Pipeline not initialized")
+    track = _pipeline.cache.get_track_info(track_id)
+    if track is None:
+        raise HTTPException(404, "Track not found in cache")
+
+    url: str | None = None
+    if track["youtube_id"]:
+        url = f"https://www.youtube.com/watch?v={track['youtube_id']}"
+
+    request = SyncRequest(
+        url=url,
+        title=track["title"],
+        artist=track["artist"],
+        force=True,
+    )
+    try:
+        return _pipeline.sync(request)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    except RuntimeError as e:
+        raise HTTPException(500, str(e))
+
+
 @app.get("/api/cache/{track_id}")
 async def get_cached(track_id: str) -> SyncResult:
     if _pipeline is None:

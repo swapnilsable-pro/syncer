@@ -156,6 +156,26 @@ class CacheManager:
             logger.exception("Failed to list tracks")
             return []
 
+    def get_track_info(self, track_id: str) -> dict | None:
+        """Look up stored track metadata by track_id. Returns dict with title, artist, youtube_id, spotify_id, or None."""
+        try:
+            with self._connect() as conn:
+                row = conn.execute(
+                    "SELECT title, artist, duration, spotify_id, youtube_id FROM tracks WHERE id = ?",
+                    (track_id,),
+                ).fetchone()
+                if row:
+                    return {
+                        "title": row[0],
+                        "artist": row[1],
+                        "duration": row[2],
+                        "spotify_id": row[3],
+                        "youtube_id": row[4],
+                    }
+        except Exception:
+            logger.exception("Track info lookup failed for %s", track_id)
+        return None
+
     def clear_all(self) -> int:
         """Delete all cached entries. Returns number of entries cleared."""
         try:

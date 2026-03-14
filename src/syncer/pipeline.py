@@ -99,13 +99,16 @@ class SyncPipeline:
         # Step 1: Resolve input — determine title, artist, youtube URL
         track_info, youtube_url = self._resolve_input(request)
 
-        # Step 2: Check cache
-        cached = self.cache.get_cached(
-            track_info.title, track_info.artist, track_info.duration, language=language
-        )
-        if cached is not None:
-            cached.processing_time_seconds = time.time() - start_time
-            return cached
+        # Step 2: Check cache (skip when force=True)
+        if not request.force:
+            cached = self.cache.get_cached(
+                track_info.title, track_info.artist, track_info.duration, language=language
+            )
+            if cached is not None:
+                cached.processing_time_seconds = time.time() - start_time
+                return cached
+        else:
+            logger.info("Force re-processing: skipping cache for %s - %s", track_info.title, track_info.artist)
 
         # Step 3: Fetch lyrics from LRCLIB
         lyrics_lines: list[SyncedLine] | None = None
