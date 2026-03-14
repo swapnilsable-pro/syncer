@@ -216,3 +216,34 @@ CacheManager uses sqlite3 directly (no ORM). The `_connect()` context manager pa
 
 ### Key Insight
 Settings tests (ctc_device, ctc_model) were already updated in Task 3. Only the timing_source strings and WhisperX imports/usage needed updating in Task 9.
+
+---
+
+## Final QA — End-to-End Pipeline Verification (Task F3, 2026-03-08)
+
+### Results: 3/3 songs pass (with 2 bug workarounds)
+
+| Song | Timing Source | Lines | Words | Confidence | Processing |
+|------|--------------|-------|-------|------------|------------|
+| Rick Astley - Never Gonna Give You Up | ctc_aligned | 58 | 364 | 0.124 | 128.7s |
+| Bach - Toccata and Fugue in D minor | no_lyrics | 0 | 0 | 0.0 | <1s |
+| Arijit Singh - Tum Hi Ho (Hindi) | ctc_aligned | 45 | 210 | 0.393 | 161.8s |
+
+### Bugs Found
+
+**BUG 1 — LRCLIB duration=0.0 → HTTP 400 (BLOCKS CLI)**
+- `pipeline.py` passes `TrackInfo.duration=0.0` to `fetch_lyrics()`. LRCLIB rejects 0.0 as invalid.
+- Fallback search only triggers on 404, not 400 → returns None → false `no_lyrics`.
+- Fix: Treat `duration <= 0` as `None` in `fetch_lyrics()` or pipeline.
+
+**BUG 2 — Hyphen in lyrics → blank CTC token → crash (BLOCKS ALIGNMENT)**
+- `text_normalize._STRIP_PATTERN` keeps hyphens. MMS_FA tokenizer maps `-` to token 0 (blank).
+- `torchaudio.forced_align()` raises ValueError when targets contain blank index.
+- Fix: Remove `-` from `_STRIP_PATTERN` or replace with space before tokenization.
+
+### Key Observations
+- Hindi romanized lyrics aligned with HIGHER confidence (0.39) than English (0.12)
+- MMS_FA may handle vowel-heavy romanized text better than English contractions
+- All pipeline components (LRCLIB, YouTube DL, Demucs, CTC) work individually
+- CLI is blocked by Bug 1 (duration=0.0) — every title/artist query fails at LRCLIB step
+- Evidence saved to `.sisyphus/evidence/final-qa/`

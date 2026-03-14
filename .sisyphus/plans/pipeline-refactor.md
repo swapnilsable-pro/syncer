@@ -1022,7 +1022,7 @@ Max Concurrent: 4 (Wave 1)
   Run `python -m pytest tests/ -m "not slow and not integration"` + check all changed files for: `as any`, empty catches, `print()` in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names. Verify no WhisperX references remain.
   Output: `Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
+- [x] F3. **Real Manual QA** — `unspecified-high`
   Start FastAPI server. Run 3 reference songs through CLI: (1) English song with LRCLIB lyrics, (2) Song with no LRCLIB lyrics (verify graceful skip), (3) Hindi song if uroman works. Verify word timestamps are sensible (start < end, sequential, within song duration). Save outputs to `.sisyphus/evidence/final-qa/`.
   Output: `Songs [N/N pass] | Timestamps valid [YES/NO] | Graceful skip [YES/NO] | VERDICT`
 

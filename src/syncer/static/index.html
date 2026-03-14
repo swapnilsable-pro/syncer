@@ -1,1665 +1,1488 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Syncer Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #07090f;
-      --bg-soft: #101625;
-      --panel: rgba(17, 23, 37, 0.82);
-      --panel-edge: rgba(120, 145, 187, 0.23);
-      --text: #eef5ff;
-      --text-muted: #a4b2cd;
-      --accent: #32e2b8;
-      --accent-2: #ffbd5e;
-      --danger: #ff6978;
-      --ok: #38eca0;
-      --warn: #ffcf66;
-      --bad: #ff6b78;
-      --shadow: 0 22px 40px rgba(0, 0, 0, 0.45);
-      --radius-lg: 22px;
-      --radius-md: 14px;
-      --radius-sm: 10px;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Sora", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 10% 5%, rgba(68, 103, 214, 0.2) 0%, transparent 44%),
-        radial-gradient(circle at 90% 12%, rgba(33, 183, 182, 0.24) 0%, transparent 38%),
-        radial-gradient(circle at 70% 80%, rgba(255, 160, 66, 0.18) 0%, transparent 42%),
-        var(--bg);
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.18;
-      background-image: repeating-linear-gradient(
-        -22deg,
-        rgba(255, 255, 255, 0.06) 0,
-        rgba(255, 255, 255, 0.06) 1px,
-        transparent 1px,
-        transparent 13px
-      );
-      mix-blend-mode: soft-light;
-    }
-
-    .shell {
-      width: min(1120px, 92vw);
-      margin: 0 auto;
-      padding: 44px 0 56px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero,
-    .sync-panel,
-    .tracks-panel {
-      animation: rise-in 620ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
-    }
-
-    .sync-panel {
-      animation-delay: 90ms;
-    }
-
-    .tracks-panel {
-      animation-delay: 170ms;
-    }
-
-    .hero {
-      margin-bottom: 18px;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.73rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-
-    .eyebrow::before {
-      content: "";
-      width: 36px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent));
-    }
-
-    h1 {
-      margin: 10px 0 6px;
-      font-family: "Fraunces", serif;
-      font-size: clamp(2rem, 5vw, 3.4rem);
-      line-height: 1;
-      letter-spacing: 0.015em;
-      font-weight: 700;
-      text-wrap: balance;
-    }
-
-    .hero p {
-      margin: 0;
-      color: var(--text-muted);
-      max-width: 68ch;
-      line-height: 1.55;
-    }
-
-    .sync-panel,
-    .tracks-panel {
-      margin-top: 24px;
-      background: var(--panel);
-      border: 1px solid var(--panel-edge);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-
-    .sync-panel {
-      padding: 18px;
-    }
-
-    .sync-form {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-    }
-
-    .sync-input {
-      width: 100%;
-      height: 52px;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(145, 166, 205, 0.35);
-      padding: 0 16px;
-      background: rgba(8, 11, 19, 0.74);
-      color: var(--text);
-      font: inherit;
-      font-size: 0.95rem;
-      transition: border-color 180ms ease, box-shadow 180ms ease;
-    }
-
-    .sync-input::placeholder {
-      color: #7f90b1;
-    }
-
-    .sync-input:focus {
-      outline: none;
-      border-color: rgba(50, 226, 184, 0.75);
-      box-shadow: 0 0 0 4px rgba(50, 226, 184, 0.15);
-    }
-
-    .sync-button {
-      border: 0;
-      min-width: 148px;
-      border-radius: var(--radius-md);
-      padding: 0 18px;
-      font: inherit;
-      font-weight: 600;
-      color: #041018;
-      background: linear-gradient(130deg, var(--accent), #49f5d0 56%, #a4ffec);
-      cursor: pointer;
-      transition: transform 140ms ease, box-shadow 140ms ease;
-      box-shadow: 0 10px 25px rgba(35, 211, 170, 0.25);
-    }
-
-    .sync-button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 26px rgba(35, 211, 170, 0.32);
-    }
-
-    .sync-button:disabled,
-    .sync-input:disabled {
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-
-    .feedback {
-      margin-top: 12px;
-      border-radius: var(--radius-sm);
-      padding: 11px 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      border: 1px solid transparent;
-      background: rgba(8, 11, 19, 0.54);
-      color: var(--text-muted);
-      min-height: 44px;
-    }
-
-    .feedback-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #7486a9;
-      flex-shrink: 0;
-    }
-
-    .feedback.processing .feedback-dot {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      border-top-color: var(--accent-2);
-      background: transparent;
-      animation: spin 850ms linear infinite;
-      border-radius: 50%;
-    }
-
-    .feedback.success {
-      color: #ccffe8;
-      border-color: rgba(49, 226, 169, 0.38);
-      background: rgba(17, 53, 44, 0.33);
-    }
-
-    .feedback.success .feedback-dot {
-      background: var(--ok);
-    }
-
-    .feedback.error {
-      color: #ffd8dc;
-      border-color: rgba(255, 105, 120, 0.4);
-      background: rgba(69, 21, 29, 0.38);
-    }
-
-    .feedback.error .feedback-dot {
-      background: var(--danger);
-    }
-
-    .feedback.processing {
-      color: #ffe8c2;
-      border-color: rgba(255, 189, 94, 0.34);
-      background: rgba(54, 37, 18, 0.35);
-    }
-
-    .tracks-panel {
-      padding: 18px;
-      position: relative;
-      overflow: hidden;
-      transition: min-height 280ms ease;
-    }
-
-    .tracks-panel.show-detail {
-      min-height: min(78vh, 780px);
-    }
-
-    .tracks-viewport {
-      position: relative;
-      min-height: 220px;
-    }
-
-    .track-list-view {
-      transition: opacity 280ms ease, transform 320ms cubic-bezier(0.2, 0.9, 0.2, 1);
-    }
-
-    .track-detail-view {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transform: translateX(26px);
-      pointer-events: none;
-      transition: opacity 260ms ease, transform 320ms cubic-bezier(0.2, 0.9, 0.2, 1);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .tracks-panel.show-detail .track-list-view {
-      opacity: 0;
-      transform: translateX(-24px);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .tracks-panel.show-detail .track-detail-view {
-      opacity: 1;
-      transform: translateX(0);
-      pointer-events: auto;
-    }
-
-    .tracks-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .tracks-head h2 {
-      margin: 0;
-      font-family: "Fraunces", serif;
-      font-size: clamp(1.2rem, 3.3vw, 1.75rem);
-      font-weight: 500;
-    }
-
-    .track-count {
-      color: var(--text-muted);
-      font-size: 0.86rem;
-    }
-
-    .empty-state {
-      border: 1px dashed rgba(140, 161, 201, 0.36);
-      border-radius: var(--radius-md);
-      padding: 24px 18px;
-      text-align: center;
-      color: var(--text-muted);
-      background: rgba(9, 12, 21, 0.55);
-      line-height: 1.6;
-    }
-
-    .track-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
-      gap: 12px;
-    }
-
-    .track-card {
-      background: linear-gradient(160deg, rgba(14, 18, 29, 0.95), rgba(10, 15, 25, 0.92));
-      border: 1px solid rgba(131, 151, 189, 0.26);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-    }
-
-    .track-card.clickable {
-      cursor: pointer;
-    }
-
-    .track-card.clickable:hover {
-      transform: translateY(-2px);
-      border-color: rgba(80, 231, 195, 0.45);
-      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.34);
-    }
-
-    .track-card.clickable:focus-visible {
-      outline: none;
-      border-color: rgba(50, 226, 184, 0.74);
-      box-shadow: 0 0 0 3px rgba(50, 226, 184, 0.22), 0 14px 30px rgba(0, 0, 0, 0.35);
-      transform: translateY(-2px);
-    }
-
-    .track-card::after {
-      content: "";
-      position: absolute;
-      inset: auto -36px -36px auto;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(80, 231, 195, 0.16), transparent 65%);
-      pointer-events: none;
-      transition: opacity 200ms ease;
-    }
-
-    .track-card.clickable:hover::after,
-    .track-card.clickable:focus-visible::after {
-      opacity: 0.92;
-    }
-
-    .track-title {
-      margin: 0;
-      font-size: 1rem;
-      line-height: 1.35;
-      font-weight: 600;
-      color: var(--text);
-      overflow-wrap: anywhere;
-    }
-
-    .track-artist {
-      margin: 2px 0 12px;
-      color: #b9c8e3;
-      font-size: 0.88rem;
-      overflow-wrap: anywhere;
-    }
-
-    .meta {
-      display: grid;
-      gap: 8px;
-    }
-
-    .meta-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .meta-row span:last-child {
-      text-align: right;
-      color: #d9e5ff;
-      font-weight: 500;
-    }
-
-    .confidence {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 64px;
-      border-radius: 999px;
-      padding: 3px 10px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      border: 1px solid transparent;
-    }
-
-    .confidence.good {
-      color: #cdffec;
-      background: rgba(53, 228, 162, 0.22);
-      border-color: rgba(53, 228, 162, 0.4);
-    }
-
-    .confidence.warn {
-      color: #fff0cd;
-      background: rgba(255, 194, 90, 0.22);
-      border-color: rgba(255, 194, 90, 0.38);
-    }
-
-    .confidence.bad {
-      color: #ffd7dc;
-      background: rgba(255, 107, 120, 0.2);
-      border-color: rgba(255, 107, 120, 0.35);
-    }
-
-    .confidence.unknown {
-      color: #d8e2f9;
-      background: rgba(148, 168, 204, 0.2);
-      border-color: rgba(148, 168, 204, 0.36);
-    }
-
-    .track-list[aria-busy="true"] {
-      opacity: 0.72;
-      transition: opacity 200ms ease;
-    }
-
-    .detail-topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 2px 1px 0;
-    }
-
-    .detail-back-button {
-      border: 1px solid rgba(127, 151, 190, 0.33);
-      border-radius: 999px;
-      background: rgba(10, 14, 24, 0.86);
-      color: var(--text);
-      padding: 8px 13px;
-      font: inherit;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: border-color 170ms ease, transform 170ms ease;
-    }
-
-    .detail-back-button:hover {
-      transform: translateY(-1px);
-      border-color: rgba(50, 226, 184, 0.52);
-    }
-
-    .detail-back-button:focus-visible {
-      outline: none;
-      border-color: rgba(50, 226, 184, 0.74);
-      box-shadow: 0 0 0 3px rgba(50, 226, 184, 0.2);
-    }
-
-    .detail-track-id {
-      color: var(--text-muted);
-      font-size: 0.76rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .detail-content {
-      flex: 1;
-      min-height: 0;
-      overflow: auto;
-      display: grid;
-      gap: 12px;
-      padding-right: 5px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(117, 141, 181, 0.62) rgba(12, 17, 28, 0.5);
-    }
-
-    .detail-content::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .detail-content::-webkit-scrollbar-track {
-      background: rgba(12, 17, 28, 0.5);
-      border-radius: 999px;
-    }
-
-    .detail-content::-webkit-scrollbar-thumb {
-      border-radius: 999px;
-      background: rgba(117, 141, 181, 0.62);
-    }
-
-    .detail-state {
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(124, 145, 180, 0.33);
-      background: rgba(9, 12, 21, 0.76);
-      padding: 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #d6e3ff;
-    }
-
-    .detail-state-copy {
-      display: grid;
-      gap: 5px;
-    }
-
-    .detail-state-title {
-      margin: 0;
-      font-size: 0.93rem;
-      font-weight: 600;
-    }
-
-    .detail-state-text {
-      margin: 0;
-      font-size: 0.84rem;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    .detail-state.error {
-      border-color: rgba(255, 107, 120, 0.44);
-      background: rgba(61, 20, 28, 0.44);
-    }
-
-    .detail-loader {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.22);
-      border-top-color: var(--accent-2);
-      animation: spin 850ms linear infinite;
-      flex-shrink: 0;
-    }
-
-    .detail-action {
-      width: fit-content;
-      border: 1px solid rgba(255, 189, 94, 0.45);
-      border-radius: 999px;
-      background: rgba(43, 30, 15, 0.56);
-      color: #ffe7ba;
-      font: inherit;
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 7px 12px;
-      cursor: pointer;
-    }
-
-    .detail-action:hover {
-      border-color: rgba(255, 189, 94, 0.68);
-    }
-
-    .detail-header {
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(119, 144, 183, 0.32);
-      background: linear-gradient(160deg, rgba(13, 18, 31, 0.95), rgba(9, 13, 22, 0.9));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-      padding: 15px;
-      display: grid;
-      gap: 12px;
-    }
-
-    .detail-title-block {
-      display: grid;
-      gap: 2px;
-    }
-
-    .detail-title {
-      margin: 0;
-      font-family: "Fraunces", serif;
-      font-size: clamp(1.14rem, 2.3vw, 1.48rem);
-      line-height: 1.18;
-      letter-spacing: 0.01em;
-      font-weight: 600;
-    }
-
-    .detail-artist {
-      margin: 0;
-      color: #c6d5ef;
-      font-size: 0.92rem;
-    }
-
-    .detail-pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .detail-pill {
-      border-radius: 999px;
-      border: 1px solid rgba(122, 147, 188, 0.34);
-      background: rgba(8, 12, 20, 0.72);
-      color: #deebff;
-      padding: 4px 10px;
-      font-size: 0.74rem;
-      font-weight: 600;
-      letter-spacing: 0.01em;
-      text-transform: uppercase;
-    }
-
-    .detail-info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-      gap: 8px;
-    }
-
-    .detail-info-item {
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(116, 138, 177, 0.25);
-      background: rgba(8, 12, 20, 0.6);
-      padding: 9px 10px;
-      display: grid;
-      gap: 4px;
-    }
-
-    .detail-info-label {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .detail-info-value {
-      font-size: 0.84rem;
-      color: #e8f1ff;
-      font-weight: 600;
-      overflow-wrap: anywhere;
-    }
-
-    .detail-stats {
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(115, 139, 177, 0.3);
-      background: rgba(9, 13, 22, 0.66);
-      padding: 12px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 8px;
-    }
-
-    .detail-stat {
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(113, 135, 171, 0.24);
-      background: rgba(7, 10, 17, 0.6);
-      padding: 9px;
-      display: grid;
-      gap: 4px;
-    }
-
-    .detail-stat-label {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .detail-stat-value {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #ecf4ff;
-      line-height: 1.2;
-    }
-
-    .lyrics-section {
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(114, 138, 178, 0.3);
-      background: rgba(8, 12, 21, 0.76);
-      padding: 12px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .lyrics-heading {
-      margin: 0;
-      font-family: "Fraunces", serif;
-      font-size: 1.04rem;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-    }
-
-    .lyrics-subheading {
-      margin: 0;
-      color: var(--text-muted);
-      font-size: 0.81rem;
-      line-height: 1.45;
-    }
-
-    .lyrics-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .lyrics-row {
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(111, 134, 172, 0.25);
-      background: rgba(7, 10, 18, 0.62);
-      padding: 10px;
-      display: grid;
-      grid-template-columns: 42px 144px 1fr;
-      gap: 10px;
-      align-items: flex-start;
-    }
-
-    .line-no {
-      border-radius: 8px;
-      border: 1px solid rgba(117, 139, 175, 0.3);
-      background: rgba(12, 17, 30, 0.7);
-      color: #d8e6ff;
-      font-size: 0.73rem;
-      font-weight: 700;
-      text-align: center;
-      padding: 5px 0;
-      line-height: 1;
-      letter-spacing: 0.06em;
-      align-self: stretch;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .line-range {
-      color: #bfd1ef;
-      font-size: 0.77rem;
-      line-height: 1.35;
-      font-feature-settings: "tnum" 1;
-      letter-spacing: 0.01em;
-      padding-top: 3px;
-      white-space: nowrap;
-    }
-
-    .line-words {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      align-items: flex-start;
-    }
-
-    .word-chip {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 6px;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      padding: 5px 9px;
-      background: rgba(101, 125, 163, 0.2);
-      color: #d9e7ff;
-      transition: transform 120ms ease;
-      white-space: nowrap;
-    }
-
-    .word-chip:hover {
-      transform: translateY(-1px);
-    }
-
-    .word-chip.good {
-      border-color: rgba(56, 236, 160, 0.42);
-      background: rgba(56, 236, 160, 0.19);
-      color: #d3ffe8;
-    }
-
-    .word-chip.warn {
-      border-color: rgba(255, 207, 102, 0.45);
-      background: rgba(255, 207, 102, 0.2);
-      color: #ffedc2;
-    }
-
-    .word-chip.bad {
-      border-color: rgba(255, 107, 120, 0.46);
-      background: rgba(255, 107, 120, 0.2);
-      color: #ffd6dc;
-    }
-
-    .word-chip.unknown {
-      border-color: rgba(136, 157, 193, 0.45);
-      background: rgba(136, 157, 193, 0.2);
-      color: #d9e4f8;
-    }
-
-    .word-text {
-      font-size: 0.82rem;
-      font-weight: 600;
-      line-height: 1.2;
-      max-width: 170px;
-      overflow-wrap: anywhere;
-    }
-
-    .word-score {
-      font-size: 0.69rem;
-      font-weight: 700;
-      opacity: 0.9;
-      font-feature-settings: "tnum" 1;
-    }
-
-    .lyrics-empty {
-      border-radius: var(--radius-sm);
-      border: 1px dashed rgba(113, 136, 174, 0.34);
-      color: var(--text-muted);
-      padding: 16px;
-      text-align: center;
-      font-size: 0.84rem;
-      line-height: 1.45;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @keyframes rise-in {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 760px) {
-      .shell {
-        width: min(1120px, 94vw);
-        padding-top: 28px;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Syncer | High-Precision Lyrics Alignment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #050508;
+        --panel-bg: rgba(20, 22, 30, 0.6);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --text-main: #f0f0f5;
+        --text-muted: #9ba1b0;
+        --accent-primary: #00ffd5;
+        --accent-secondary: #7000ff;
+        --accent-tertiary: #ff007b;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --surface: rgba(30, 32, 45, 0.7);
+        --font-sans: "Inter", sans-serif;
+        --font-serif: "Playfair Display", serif;
       }
 
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg);
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        min-height: 100vh;
+        overflow-x: hidden;
+        line-height: 1.5;
+      }
+
+      /* Animated Background Orbs */
+      .bg-orbs {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.4;
+        mix-blend-mode: screen;
+        animation: float 20s infinite ease-in-out;
+      }
+      .orb-1 {
+        width: 400px;
+        height: 400px;
+        background: var(--accent-secondary);
+        top: -10%;
+        left: 10%;
+        animation-delay: 0s;
+      }
+      .orb-2 {
+        width: 500px;
+        height: 500px;
+        background: rgba(0, 255, 213, 0.4);
+        bottom: -10%;
+        right: -5%;
+        animation-delay: -5s;
+      }
+      .orb-3 {
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 0, 123, 0.3);
+        top: 40%;
+        left: 40%;
+        animation-delay: -10s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          transform: translateY(-30px) scale(1.05);
+        }
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+      }
+
+      /* Hero */
+      .hero {
+        text-align: center;
+        margin-bottom: 3rem;
+        animation: fade-in-up 0.8s ease-out;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        border-radius: 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--panel-border);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        color: var(--accent-primary);
+      }
+      .badge::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent-primary);
+        box-shadow: 0 0 10px var(--accent-primary);
+      }
+      .hero h1 {
+        font-family: var(--font-serif);
+        font-size: 4.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.1;
+        background: linear-gradient(to right, #fff, #a0a5b5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+        max-width: 650px;
+        margin: 0 auto;
+      }
+
+      /* Glass Panels */
+      .glass-panel {
+        background: var(--panel-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--panel-border);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        margin-bottom: 2rem;
+        animation: fade-in-up 0.8s ease-out 0.2s both;
+        position: relative;
+        overflow: hidden;
+      }
+      .glass-panel::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+      }
+
+      /* Sync Form */
       .sync-form {
-        grid-template-columns: 1fr;
+        display: flex;
+        gap: 1rem;
+        position: relative;
+        z-index: 1;
       }
-
+      .sync-input {
+        flex: 1;
+        padding: 1.2rem 1.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--panel-border);
+        border-radius: 16px;
+        color: #fff;
+        font-family: var(--font-sans);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .sync-input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+      .sync-input:focus {
+        outline: none;
+        border-color: rgba(0, 255, 213, 0.5);
+        box-shadow:
+          0 0 20px rgba(0, 255, 213, 0.15),
+          inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        background: rgba(0, 0, 0, 0.5);
+      }
       .sync-button {
-        height: 46px;
+        padding: 0 2.5rem;
+        background: linear-gradient(135deg, var(--accent-primary), #00b3ff);
+        border: none;
+        border-radius: 16px;
+        color: #000;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 20px rgba(0, 255, 213, 0.2);
+        white-space: nowrap;
+      }
+      .sync-button::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        transform: skewX(-20deg);
+        transition: 0.5s;
+      }
+      .sync-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 25px rgba(0, 255, 213, 0.3);
+      }
+      .sync-button:hover:not(:disabled)::after {
+        left: 150%;
+      }
+      .sync-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        filter: grayscale(50%);
+        transform: none;
+        box-shadow: none;
       }
 
-      .track-grid {
-        grid-template-columns: 1fr;
+      .feedback {
+        margin-top: 1.5rem;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid transparent;
+        height: 3.5rem;
+      }
+      .feedback-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+      }
+      .feedback.processing {
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #fcd34d;
+        background: rgba(245, 158, 11, 0.05);
+      }
+      .feedback.processing .feedback-dot {
+        background: transparent;
+        border: 2px solid var(--warning);
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+        width: 16px;
+        height: 16px;
+      }
+      .feedback.success {
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #6ee7b7;
+        background: rgba(16, 185, 129, 0.05);
+      }
+      .feedback.success .feedback-dot {
+        background: var(--success);
+        box-shadow: 0 0 15px var(--success);
+      }
+      .feedback.error {
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        background: rgba(239, 68, 68, 0.05);
+      }
+      .feedback.error .feedback-dot {
+        background: var(--error);
+        box-shadow: 0 0 15px var(--error);
+      }
+
+      /* Tracks Panel */
+      .tracks-panel {
+        position: relative;
+        animation: fade-in-up 0.8s ease-out 0.4s both;
+        min-height: 400px;
+        transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 0;
+        overflow: hidden;
+      }
+      .tracks-panel-content {
+        padding: 2.5rem;
+      }
+
+      .view-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .track-list-view,
+      .track-detail-view {
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        width: 100%;
+      }
+      .track-detail-view {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(20px) scale(0.98);
+      }
+      .tracks-panel.show-detail .track-list-view {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-20px) scale(0.98);
+        position: absolute;
+      }
+      .tracks-panel.show-detail .track-detail-view {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(0) scale(1);
+        position: relative;
       }
 
       .tracks-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--panel-border);
+      }
+      .tracks-head h2 {
+        font-family: var(--font-serif);
+        font-size: 2.2rem;
+        font-weight: 600;
+        background: linear-gradient(to right, #fff, var(--accent-primary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .track-count {
+        color: var(--accent-primary);
+        font-size: 0.9rem;
+        font-weight: 600;
+        background: rgba(0, 255, 213, 0.1);
+        padding: 0.4rem 1rem;
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 213, 0.2);
+      }
+
+      .track-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+      .track-card {
+        background: rgba(15, 17, 26, 0.7);
+        border: 1px solid var(--panel-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .track-card:hover {
+        transform: translateY(-5px) scale(1.02);
+        border-color: rgba(0, 255, 213, 0.4);
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.4),
+          0 0 25px rgba(0, 255, 213, 0.15);
+        background: rgba(30, 35, 50, 0.8);
+      }
+      .track-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          var(--accent-secondary),
+          var(--accent-primary)
+        );
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .track-card:hover::before {
+        opacity: 1;
+      }
+
+      .track-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+      .track-artist {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        font-family: var(--font-serif);
+        font-style: italic;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .meta-item {
+        display: flex;
         flex-direction: column;
+        gap: 0.3rem;
+      }
+      .meta-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+      }
+      .meta-val {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #ddd;
+      }
+
+      .conf-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .conf-good {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .conf-warn {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      .conf-bad {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+      .conf-unknown {
+        background: rgba(156, 163, 175, 0.15);
+        color: #9ca3af;
+        border: 1px solid rgba(156, 163, 175, 0.3);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+        border: 1px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        color: var(--text-muted);
+        background: rgba(0, 0, 0, 0.2);
+        font-size: 1.1rem;
+      }
+
+      /* Track Detail View */
+      .detail-head {
+        display: flex;
         align-items: flex-start;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--panel-border);
       }
-
-      .tracks-panel.show-detail {
-        min-height: min(82vh, 920px);
+      .btn-back {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--panel-border);
+        color: #fff;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
       }
-
-      .detail-topbar {
+      .btn-back:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.05) translateX(-2px);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 15px rgba(0, 255, 213, 0.2);
+        color: var(--accent-primary);
+      }
+      .detail-title-wrap {
+        flex: 1;
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        gap: 0.2rem;
       }
-
+      .detail-header-title {
+        font-family: var(--font-serif);
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.2;
+        word-break: break-word;
+      }
+      .detail-header-artist {
+        color: var(--accent-primary);
+        font-size: 1.2rem;
+        font-weight: 500;
+        font-family: var(--font-serif);
+        font-style: italic;
+      }
+      .detail-track-id-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.3rem;
+      }
       .detail-track-id {
-        font-size: 0.72rem;
+        font-family: monospace;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        background: rgba(0, 0, 0, 0.4);
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
       }
 
-      .detail-content {
-        padding-right: 2px;
+      .detail-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 2rem;
+        align-items: start;
+      }
+      @media (max-width: 950px) {
+        .detail-layout {
+          grid-template-columns: 1fr;
+        }
       }
 
-      .detail-info-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      /* Left Sidebar: Stats */
+      .detail-sidebar {
+        background: rgba(10, 12, 18, 0.5);
+        border-radius: 20px;
+        border: 1px solid var(--panel-border);
+        padding: 2rem;
+        position: sticky;
+        top: 2rem;
+        box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.02);
+      }
+      .stat-circle-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 2.5rem;
+        position: relative;
+      }
+      .ring-chart {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: conic-gradient(
+          var(--accent-primary) var(--pct),
+          rgba(255, 255, 255, 0.05) 0
+        );
+        box-shadow: 0 0 30px rgba(0, 255, 213, 0.1);
+      }
+      .ring-chart::before {
+        content: "";
+        position: absolute;
+        inset: 10px;
+        background: #0c0e14;
+        border-radius: 50%;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+      .ring-val {
+        position: relative;
+        font-size: 2.2rem;
+        font-weight: 700;
+        z-index: 1;
+        font-family: var(--font-serif);
+        color: #fff;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      }
+      .ring-label {
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
       }
 
-      .detail-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .detail-info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+      }
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .info-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .info-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+      .info-val {
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-align: right;
+        color: #eee;
+      }
+
+      /* Right Main: Lyrics Timeline */
+      .timeline-container {
+        background: rgba(10, 12, 18, 0.5);
+        border: 1px solid var(--panel-border);
+        border-radius: 20px;
+        padding: 2rem;
+        height: 650px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.02);
+      }
+      .timeline-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      .timeline-container::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .timeline-container::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+      }
+      .timeline-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
       }
 
       .lyrics-row {
-        grid-template-columns: 38px 1fr;
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        opacity: 0.8;
+        transition: all 0.3s;
+      }
+      .lyrics-row:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+      }
+      .lyrics-row:hover {
+        opacity: 1;
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+      }
+      .line-timing {
+        width: 90px;
+        flex-shrink: 0;
+        font-family: tabular-nums, monospace;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: flex-start;
+        gap: 0.4rem;
+        margin-top: 0.4rem;
+      }
+      .time-start {
+        color: var(--accent-primary);
+        font-weight: 600;
+        padding: 0.2rem 0.5rem;
+        background: rgba(0, 255, 213, 0.1);
+        border-radius: 4px;
+      }
+      .time-end {
+        padding: 0.2rem 0.5rem;
       }
 
-      .line-range {
-        grid-column: 2;
-        white-space: normal;
+      .words-wrapper {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        line-height: 2.2;
       }
 
-      .line-words {
-        grid-column: 1 / -1;
+      .word-node {
+        display: inline-flex;
+        position: relative;
+        cursor: help;
+        padding: 0.3rem 0.6rem;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        font-size: 1.15rem;
+        font-weight: 500;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        background: rgba(255, 255, 255, 0.03);
+        color: #e2e8f0;
       }
-    }
-  </style>
-</head>
-<body>
-  <main class="shell">
-    <header class="hero">
-      <span class="eyebrow">Lyrics Alignment Utility</span>
-      <h1>Syncer Dashboard</h1>
-      <p>Drop a Spotify or YouTube link, or write <strong>Artist - Title</strong>. Syncer handles the slow heavy lifting and keeps every processed track ready in your local history.</p>
-    </header>
+      .word-node:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        z-index: 2;
+      }
 
-    <section class="sync-panel" aria-labelledby="sync-heading">
-      <h2 id="sync-heading" style="position:absolute;left:-9999px;">Submit track</h2>
-      <form id="sync-form" class="sync-form" novalidate>
-        <input
-          id="sync-input"
-          class="sync-input"
-          type="text"
-          placeholder="Paste Spotify/YouTube link or type Artist - Title..."
-          autocomplete="off"
-          required
+      .node-good {
+        border-bottom: 2px solid var(--success);
+      }
+      .node-warn {
+        border-bottom: 2px solid var(--warning);
+        color: #fef3c7;
+      }
+      .node-bad {
+        border-bottom: 2px solid var(--error);
+        color: #fee2e2;
+      }
+      .node-none {
+        border-bottom: 2px solid rgba(156, 163, 175, 0.5);
+        color: #9ca3af;
+      }
+
+      /* Tooltip */
+      .word-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-5px);
+        background: #0f111a;
+        border: 1px solid var(--panel-border);
+        border-radius: 8px;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.75rem;
+        font-family: monospace;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+        z-index: 10;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .word-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: var(--panel-border) transparent transparent transparent;
+      }
+      .word-node:hover .word-tooltip {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-12px);
+      }
+      .tt-time {
+        color: var(--text-muted);
+      }
+      .tt-conf {
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        border-radius: 4px;
+      }
+      .tt-conf.good {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+      }
+      .tt-conf.warn {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+      }
+      .tt-conf.bad {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+      }
+
+      /* State Views in Detail */
+      .detail-msg {
+        padding: 6rem 2rem;
+        text-align: center;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        height: 400px;
+      }
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--accent-primary);
+        border-radius: 50%;
+        animation: spin 1s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+      }
+      .detail-msg p {
+        font-size: 1.1rem;
+      }
+      .btn-retry {
+        margin-top: 1rem;
+        padding: 0.8rem 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .btn-retry:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #fff;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes fade-in-up {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .hero h1 {
+          font-size: 3rem;
+        }
+        .sync-form {
+          flex-direction: column;
+        }
+        .sync-button {
+          padding: 1.2rem;
+        }
+        .meta-grid {
+          grid-template-columns: 1fr;
+        }
+        .lyrics-row {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .line-timing {
+          width: 100%;
+          flex-direction: row;
+          justify-content: flex-start;
+          gap: 1rem;
+          align-items: center;
+          margin-top: 0;
+        }
+        .glass-panel {
+          padding: 1.5rem;
+        }
+        .tracks-panel-content {
+          padding: 1.5rem;
+        }
+        .detail-head {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1rem;
+        }
+        .detail-track-id-wrap {
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+
+    <main class="container">
+      <header class="hero">
+        <div class="badge">AI Lyrics Alignment</div>
+        <h1>Syncer Dashboard</h1>
+        <p>
+          Precision word-level timestamps. Drop a Spotify or YouTube link, or
+          type <strong>Artist - Title</strong>. We handle the complex audio
+          analysis.
+        </p>
+      </header>
+
+      <section class="glass-panel" aria-labelledby="sync-heading">
+        <form id="sync-form" class="sync-form" novalidate>
+          <input
+            id="sync-input"
+            class="sync-input"
+            type="text"
+            placeholder="Paste Spotify or YouTube link, or type Artist - Title..."
+            autocomplete="off"
+            required
+          />
+          <button id="sync-button" class="sync-button" type="submit">
+            Process Track
+          </button>
+        </form>
+        <div
+          id="feedback"
+          class="feedback"
+          role="status"
+          aria-live="polite"
+          style="display: none"
         >
-        <button id="sync-button" class="sync-button" type="submit">Process Song</button>
-      </form>
-      <div id="feedback" class="feedback idle" role="status" aria-live="polite">
-        <span class="feedback-dot" aria-hidden="true"></span>
-        <span id="feedback-text">Ready. Paste a track and start syncing.</span>
-      </div>
-    </section>
-
-    <section id="tracks-panel" class="tracks-panel" aria-labelledby="tracks-heading">
-      <div class="tracks-viewport">
-        <div id="track-list-view" class="track-list-view">
-          <div class="tracks-head">
-            <h2 id="tracks-heading">Processed Songs</h2>
-            <span id="track-count" class="track-count">0 tracks</span>
-          </div>
-          <div id="track-list" class="track-list" aria-busy="false"></div>
-          <div id="empty-state" class="empty-state" hidden>
-            No songs processed yet. Paste your first Spotify or YouTube link above and let Syncer build your library.
-          </div>
+          <span class="feedback-dot" aria-hidden="true"></span>
+          <span id="feedback-text">Ready.</span>
         </div>
+      </section>
 
-        <section id="track-detail-view" class="track-detail-view" aria-hidden="true" aria-label="Track sync detail inspector">
-          <div class="detail-topbar">
-            <button id="detail-back-button" class="detail-back-button" type="button">Back to processed songs</button>
-            <span id="detail-track-id" class="detail-track-id"></span>
-          </div>
-          <div id="detail-content" class="detail-content">
-            <div class="detail-state">
-              <div class="detail-state-copy">
-                <p class="detail-state-title">Open a track to inspect sync detail</p>
-                <p class="detail-state-text">Choose a processed track card to review line timing, per-word confidence, and source metadata.</p>
+      <section id="tracks-panel" class="tracks-panel glass-panel">
+        <div class="tracks-panel-content">
+          <div class="view-container">
+            <!-- List View -->
+            <div id="track-list-view" class="track-list-view">
+              <div class="tracks-head">
+                <h2>Processed Library</h2>
+                <span id="track-count" class="track-count">0 tracks</span>
+              </div>
+              <div id="empty-state" class="empty-state">
+                No tracks processed yet. Build your library by aligning your
+                first song!
+              </div>
+              <div id="track-list" class="track-grid"></div>
+            </div>
+
+            <!-- Detail View -->
+            <div id="track-detail-view" class="track-detail-view">
+              <div class="detail-head">
+                <button
+                  id="detail-back-button"
+                  class="btn-back"
+                  title="Back to library"
+                  aria-label="Back"
+                >
+                  ←
+                </button>
+                <div class="detail-title-wrap">
+                  <div id="detail-header-title" class="detail-header-title">
+                    Loading...
+                  </div>
+                  <div
+                    id="detail-header-artist"
+                    class="detail-header-artist"
+                  ></div>
+                </div>
+                <div class="detail-track-id-wrap">
+                  <div class="meta-label">Track ID</div>
+                  <div id="detail-track-id" class="detail-track-id"></div>
+                </div>
+              </div>
+              <div id="detail-content" class="detail-content">
+                <!-- Content injected here -->
               </div>
             </div>
           </div>
-        </section>
-      </div>
-    </section>
-  </main>
+        </div>
+      </section>
+    </main>
 
-  <script>
-    const syncForm = document.getElementById("sync-form");
-    const syncInput = document.getElementById("sync-input");
-    const syncButton = document.getElementById("sync-button");
-    const feedback = document.getElementById("feedback");
-    const feedbackText = document.getElementById("feedback-text");
-    const tracksPanel = document.getElementById("tracks-panel");
-    const trackListView = document.getElementById("track-list-view");
-    const trackList = document.getElementById("track-list");
-    const emptyState = document.getElementById("empty-state");
-    const trackCount = document.getElementById("track-count");
-    const detailView = document.getElementById("track-detail-view");
-    const detailBackButton = document.getElementById("detail-back-button");
-    const detailTrackId = document.getElementById("detail-track-id");
-    const detailContent = document.getElementById("detail-content");
+    <script>
+      // --- DOM Elements ---
+      const syncForm = document.getElementById("sync-form");
+      const syncInput = document.getElementById("sync-input");
+      const syncButton = document.getElementById("sync-button");
+      const feedback = document.getElementById("feedback");
+      const feedbackText = document.getElementById("feedback-text");
 
-    let processingTicker = null;
-    let startedAt = 0;
-    let tracksCache = [];
-    let activeTrackId = null;
-    let activeTrackSummary = null;
-    let detailRequestToken = 0;
-    let lastTriggerCard = null;
+      const tracksPanel = document.getElementById("tracks-panel");
+      const trackListView = document.getElementById("track-list-view");
+      const trackList = document.getElementById("track-list");
+      const emptyState = document.getElementById("empty-state");
+      const trackCount = document.getElementById("track-count");
 
-    function setFeedback(state, message) {
-      feedback.classList.remove("idle", "processing", "success", "error");
-      feedback.classList.add(state);
-      feedbackText.textContent = message;
-    }
+      const detailView = document.getElementById("track-detail-view");
+      const detailBackButton = document.getElementById("detail-back-button");
+      const detailHeaderTitle = document.getElementById("detail-header-title");
+      const detailHeaderArtist = document.getElementById(
+        "detail-header-artist",
+      );
+      const detailTrackId = document.getElementById("detail-track-id");
+      const detailContent = document.getElementById("detail-content");
 
-    function startProcessingFeedback() {
-      clearInterval(processingTicker);
-      startedAt = Date.now();
-      setFeedback("processing", "Analyzing track... this usually takes 30-60 seconds.");
-      processingTicker = setInterval(() => {
-        const elapsedSeconds = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
-        feedbackText.textContent = `Analyzing track... this usually takes 30-60 seconds. (${elapsedSeconds}s elapsed)`;
-      }, 1000);
-    }
+      // --- State ---
+      let processingTicker = null;
+      let startedAt = 0;
+      let tracksCache = [];
+      let activeTrackId = null;
+      let activeTrackSummary = null;
+      let detailRequestToken = 0;
 
-    function stopProcessingFeedback() {
-      clearInterval(processingTicker);
-      processingTicker = null;
-    }
-
-    function setBusy(isBusy) {
-      syncInput.disabled = isBusy;
-      syncButton.disabled = isBusy;
-      syncButton.textContent = isBusy ? "Processing..." : "Process Song";
-    }
-
-    function formatDuration(seconds) {
-      const total = Math.max(0, Math.round(Number(seconds) || 0));
-      const minutes = Math.floor(total / 60);
-      const remainder = String(total % 60).padStart(2, "0");
-      return `${minutes}:${remainder}`;
-    }
-
-    function formatTimestamp(seconds) {
-      const parsed = Number(seconds);
-      if (Number.isNaN(parsed)) {
-        return "--";
-      }
-      const total = Math.max(0, parsed);
-      const minutes = Math.floor(total / 60);
-      const remainder = (total % 60).toFixed(1).padStart(4, "0");
-      return `${minutes}:${remainder}`;
-    }
-
-    function formatExactSeconds(seconds) {
-      const parsed = Number(seconds);
-      if (Number.isNaN(parsed)) {
-        return "?";
-      }
-      const normalized = Math.max(0, parsed).toFixed(3).replace(/\.?0+$/, "");
-      return `${normalized}s`;
-    }
-
-    function formatProcessingTime(seconds) {
-      const parsed = Number(seconds);
-      if (Number.isNaN(parsed)) {
-        return "Unknown";
-      }
-      return `${parsed.toFixed(1)}s`;
-    }
-
-    function formatConfidence(value) {
-      if (value === null || value === undefined || Number.isNaN(Number(value))) {
-        return { label: "N/A", klass: "unknown" };
-      }
-      const raw = Number(value);
-      const pct = raw > 1 ? raw : raw * 100;
-      if (pct >= 80) {
-        return { label: `${Math.round(pct)}%`, klass: "good" };
-      }
-      if (pct >= 50) {
-        return { label: `${Math.round(pct)}%`, klass: "warn" };
-      }
-      return { label: `${Math.round(pct)}%`, klass: "bad" };
-    }
-
-    function normalizeConfidence(value) {
-      if (value === null || value === undefined || Number.isNaN(Number(value))) {
-        return null;
-      }
-      const raw = Number(value);
-      const normalized = raw > 1 ? raw / 100 : raw;
-      return Math.min(1, Math.max(0, normalized));
-    }
-
-    function confidenceClass(value) {
-      const normalized = normalizeConfidence(value);
-      if (normalized === null) {
-        return "unknown";
-      }
-      if (normalized >= 0.8) {
-        return "good";
-      }
-      if (normalized >= 0.5) {
-        return "warn";
-      }
-      return "bad";
-    }
-
-    function formatWordConfidence(value) {
-      const normalized = normalizeConfidence(value);
-      if (normalized === null) {
-        return "N/A";
-      }
-      return `${Math.round(normalized * 100)}%`;
-    }
-
-    function formatTimingSource(value) {
-      if (!value) {
-        return "unknown";
-      }
-      return String(value).replaceAll("_", " ");
-    }
-
-    function formatDate(value) {
-      if (!value) {
-        return "Unknown";
-      }
-      const parsed = new Date(value);
-      if (Number.isNaN(parsed.getTime())) {
-        return "Unknown";
-      }
-      return parsed.toLocaleString(undefined, {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    }
-
-    function parseInput(rawValue) {
-      const value = rawValue.trim();
-      if (!value) {
-        throw new Error("Paste a Spotify/YouTube URL or use Artist - Title.");
+      // --- Helpers ---
+      function setFeedback(state, message) {
+        feedback.style.display = "flex";
+        feedback.className = `feedback ${state}`;
+        feedbackText.textContent = message;
       }
 
-      const isUrl = /^(https?:\/\/|spotify:)/i.test(value) || /^www\./i.test(value);
-      if (isUrl) {
-        const normalized = /^www\./i.test(value) ? `https://${value}` : value;
-        return { url: normalized };
+      function startProcessingFeedback() {
+        clearInterval(processingTicker);
+        startedAt = Date.now();
+        setFeedback(
+          "processing",
+          "Synthesizing audio and computing alignments... (0s)",
+        );
+        processingTicker = setInterval(() => {
+          const seconds = Math.floor((Date.now() - startedAt) / 1000);
+          feedbackText.textContent = `Synthesizing audio and computing alignments... (${seconds}s)`;
+        }, 1000);
       }
 
-      const parts = value.split(/\s+-\s+/);
-      if (parts.length >= 2) {
-        const artist = parts[0].trim();
-        const title = parts.slice(1).join(" - ").trim();
-        if (!artist || !title) {
-          throw new Error("Use the format Artist - Title for text queries.");
+      function stopProcessingFeedback() {
+        clearInterval(processingTicker);
+      }
+
+      function setBusy(isBusy) {
+        syncInput.disabled = isBusy;
+        syncButton.disabled = isBusy;
+        syncButton.innerHTML = isBusy
+          ? `<div style="display:flex;align-items:center;gap:0.5rem;"><div class="spinner" style="width:18px;height:18px;border-width:2px;border-top-color:#fff;"></div>Processing...</div>`
+          : "Process Track";
+      }
+
+      function formatDuration(seconds) {
+        const total = Math.max(0, Math.round(Number(seconds) || 0));
+        const m = Math.floor(total / 60);
+        const s = String(total % 60).padStart(2, "0");
+        return `${m}:${s}`;
+      }
+
+      function formatPrecisionTime(seconds) {
+        const p = Number(seconds);
+        if (Number.isNaN(p)) return "--";
+        const total = Math.max(0, p);
+        const m = Math.floor(total / 60);
+        const s = (total % 60).toFixed(2).padStart(5, "0");
+        return `${m}:${s}`;
+      }
+
+      function formatDate(value) {
+        if (!value) return "Unknown";
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return "Unknown";
+        return d.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function normalizeConfidence(val) {
+        if (val === null || val === undefined || Number.isNaN(Number(val)))
+          return null;
+        const r = Number(val);
+        return r > 1 ? r / 100 : r;
+      }
+
+      function confidenceClass(val) {
+        const n = normalizeConfidence(val);
+        if (n === null) return "unknown";
+        if (n >= 0.8) return "good";
+        if (n >= 0.5) return "warn";
+        return "bad";
+      }
+
+      function getTrackId(track) {
+        return track?.track_id
+          ? String(track.track_id)
+          : track?.id
+            ? String(track.id)
+            : null;
+      }
+
+      function parseInput(val) {
+        const v = val.trim();
+        if (!v) throw new Error("Input is empty.");
+        if (/^(https?:\/\/|spotify:|www\.)/i.test(v)) {
+          return { url: /^www\./i.test(v) ? `https://${v}` : v };
         }
-        return { artist, title };
+        const parts = v.split(/\s+-\s+/);
+        if (parts.length >= 2) {
+          return {
+            artist: parts[0].trim(),
+            title: parts.slice(1).join(" - ").trim(),
+          };
+        }
+        throw new Error("Use a URL or Artist - Title format.");
       }
 
-      throw new Error("Could not parse input. Use a link or Artist - Title.");
-    }
-
-    async function requestJSON(path, options) {
-      const response = await fetch(path, options);
-      const contentType = response.headers.get("content-type") || "";
-      const isJSON = contentType.includes("application/json");
-      const payload = isJSON ? await response.json() : await response.text();
-
-      if (!response.ok) {
-        const detail = isJSON
-          ? payload.detail || payload.message || "Request failed"
-          : payload || "Request failed";
-        throw new Error(detail);
+      async function requestJSON(path, options) {
+        const res = await fetch(path, options);
+        const isJson = (res.headers.get("content-type") || "").includes(
+          "application/json",
+        );
+        const data = isJson ? await res.json() : await res.text();
+        if (!res.ok)
+          throw new Error(
+            isJson ? data.detail || data.message || "Failed" : data,
+          );
+        return data;
       }
 
-      return payload;
-    }
+      // --- Render Tracks List ---
+      function renderTracks(tracks) {
+        trackList.innerHTML = "";
+        const list = Array.isArray(tracks) ? [...tracks] : [];
+        list.sort(
+          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0),
+        );
+        tracksCache = list;
 
-    function getTrackId(track) {
-      if (!track || typeof track !== "object") {
-        return null;
-      }
-      if (track.track_id !== undefined && track.track_id !== null) {
-        return String(track.track_id);
-      }
-      if (track.id !== undefined && track.id !== null) {
-        return String(track.id);
-      }
-      return null;
-    }
+        trackCount.textContent = `${list.length} track${list.length === 1 ? "" : "s"}`;
+        emptyState.style.display = list.length === 0 ? "block" : "none";
 
-    function setDetailVisibility(isVisible) {
-      tracksPanel.classList.toggle("show-detail", isVisible);
-      detailView.setAttribute("aria-hidden", String(!isVisible));
-      trackListView.setAttribute("aria-hidden", String(isVisible));
-    }
+        if (
+          activeTrackId &&
+          !list.some((t) => getTrackId(t) === activeTrackId)
+        ) {
+          closeTrackInspector();
+        }
 
-    function createDetailState({ title, text, isError = false, showSpinner = false, showRetry = false }) {
-      const state = document.createElement("div");
-      state.className = isError ? "detail-state error" : "detail-state";
-
-      if (showSpinner) {
-        const spinner = document.createElement("span");
-        spinner.className = "detail-loader";
-        spinner.setAttribute("aria-hidden", "true");
-        state.append(spinner);
-      }
-
-      const copy = document.createElement("div");
-      copy.className = "detail-state-copy";
-
-      const titleElement = document.createElement("p");
-      titleElement.className = "detail-state-title";
-      titleElement.textContent = title;
-
-      const textElement = document.createElement("p");
-      textElement.className = "detail-state-text";
-      textElement.textContent = text;
-
-      copy.append(titleElement, textElement);
-
-      if (showRetry) {
-        const retryButton = document.createElement("button");
-        retryButton.type = "button";
-        retryButton.className = "detail-action";
-        retryButton.textContent = "Retry fetch";
-        retryButton.setAttribute("data-detail-retry", "true");
-        copy.append(retryButton);
-      }
-
-      state.append(copy);
-      return state;
-    }
-
-    function renderDetailLoading(track) {
-      const intro = track
-        ? `${track.artist || "Unknown Artist"} - ${track.title || "Untitled"}`
-        : "Fetching cached line and word-level sync data";
-      detailContent.replaceChildren(createDetailState({
-        title: "Loading sync inspection detail",
-        text: intro,
-        showSpinner: true
-      }));
-    }
-
-    function renderDetailError(message) {
-      detailContent.replaceChildren(createDetailState({
-        title: "Could not load this track detail",
-        text: message || "Request failed.",
-        isError: true,
-        showRetry: true
-      }));
-    }
-
-    function deriveLineWords(line) {
-      if (Array.isArray(line?.words) && line.words.length > 0) {
-        return line.words;
-      }
-      const text = typeof line?.text === "string" ? line.text.trim() : "";
-      if (!text) {
-        return [];
-      }
-      return text.split(/\s+/).map((wordText) => ({
-        text: wordText,
-        start: line.start,
-        end: line.end,
-        confidence: null
-      }));
-    }
-
-    function computeWordStats(lines) {
-      let totalWords = 0;
-      let confidenceCount = 0;
-      let confidenceSum = 0;
-      let min = Infinity;
-      let max = -Infinity;
-
-      for (const line of lines) {
-        const words = deriveLineWords(line);
-        totalWords += words.length;
-
-        for (const word of words) {
-          const value = normalizeConfidence(word.confidence);
-          if (value === null) {
-            continue;
+        list.forEach((t) => {
+          const id = getTrackId(t);
+          const card = document.createElement("div");
+          card.className = "track-card";
+          if (id) {
+            card.dataset.id = id;
+            card.setAttribute("role", "button");
+            card.tabIndex = 0;
           }
-          confidenceCount += 1;
-          confidenceSum += value;
-          min = Math.min(min, value);
-          max = Math.max(max, value);
+
+          const title = document.createElement("div");
+          title.className = "track-title";
+          title.textContent = t.title || "Untitled";
+
+          const artist = document.createElement("div");
+          artist.className = "track-artist";
+          artist.textContent = t.artist || "Unknown";
+
+          const meta = document.createElement("div");
+          meta.className = "meta-grid";
+
+          const conf = normalizeConfidence(t.confidence);
+          const confText = conf !== null ? `${Math.round(conf * 100)}%` : "N/A";
+          const cClass = confidenceClass(t.confidence);
+
+          meta.innerHTML = `
+          <div class="meta-item">
+            <span class="meta-label">Confidence</span>
+            <span class="conf-badge conf-${cClass}">${confText}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Duration</span>
+            <span class="meta-val">${formatDuration(t.duration)}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Timing</span>
+            <span class="meta-val" style="text-transform:capitalize">${(t.timing_source || "unknown").replace("_", " ")}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Processed</span>
+            <span class="meta-val">${formatDate(t.created_at)}</span>
+          </div>
+        `;
+
+          card.append(title, artist, meta);
+          trackList.append(card);
+        });
+      }
+
+      async function loadTracks() {
+        try {
+          const data = await requestJSON("/api/tracks");
+          renderTracks(data);
+        } catch (err) {
+          console.error(err);
+          renderTracks([]);
         }
       }
 
-      return {
-        totalLines: lines.length,
-        totalWords,
-        average: confidenceCount ? confidenceSum / confidenceCount : null,
-        minimum: confidenceCount ? min : null,
-        maximum: confidenceCount ? max : null
-      };
-    }
+      // --- Detail View ---
+      function closeTrackInspector() {
+        tracksPanel.classList.remove("show-detail");
+        activeTrackId = null;
+        activeTrackSummary = null;
+      }
 
-    function createStatCard(label, value) {
-      const card = document.createElement("div");
-      card.className = "detail-stat";
+      function showDetailLoading() {
+        detailContent.innerHTML = `
+        <div class="detail-msg">
+          <div class="spinner"></div>
+          <p>Analyzing alignment precision map...</p>
+        </div>
+      `;
+      }
 
-      const key = document.createElement("span");
-      key.className = "detail-stat-label";
-      key.textContent = label;
+      function showDetailError(msg) {
+        detailContent.innerHTML = `
+        <div class="detail-msg">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem">⚠️</div>
+          <p style="color:var(--error); font-weight: 500;">Retrieval failed</p>
+          <p>${msg}</p>
+          <button class="btn-retry" onclick="openTrackInspector(activeTrackId)">Retry Fetch</button>
+        </div>
+      `;
+      }
 
-      const output = document.createElement("span");
-      output.className = "detail-stat-value";
-      output.textContent = value;
+      function renderTrackDetail(payload, id) {
+        const t = payload?.track || {};
+        const lines = payload?.lines || [];
+        const conf = normalizeConfidence(payload?.confidence);
+        const confPct = conf !== null ? Math.round(conf * 100) : 0;
 
-      card.append(key, output);
-      return card;
-    }
+        detailHeaderTitle.textContent = t.title || "Untitled";
+        detailHeaderArtist.textContent = t.artist || "Unknown";
+        detailTrackId.textContent = id;
 
-    function createInfoItem(label, value) {
-      const item = document.createElement("div");
-      item.className = "detail-info-item";
+        // Calculate word stats
+        let wCount = 0;
+        let minConf = Infinity;
+        let maxConf = -Infinity;
 
-      const key = document.createElement("span");
-      key.className = "detail-info-label";
-      key.textContent = label;
+        lines.forEach((l) => {
+          const ww = l.words || [];
+          if (ww.length) wCount += ww.length;
+          else if (l.text) wCount += l.text.split(" ").length;
 
-      const output = document.createElement("span");
-      output.className = "detail-info-value";
-      output.textContent = value;
-
-      item.append(key, output);
-      return item;
-    }
-
-    function renderTrackDetail(payload, trackId) {
-      const track = payload?.track && typeof payload.track === "object" ? payload.track : {};
-      const lines = Array.isArray(payload?.lines) ? payload.lines : [];
-      const overallConfidence = formatConfidence(payload?.confidence);
-      const stats = computeWordStats(lines);
-
-      detailTrackId.textContent = `Track ID: ${trackId}`;
-
-      const header = document.createElement("section");
-      header.className = "detail-header";
-
-      const titleBlock = document.createElement("div");
-      titleBlock.className = "detail-title-block";
-
-      const title = document.createElement("h3");
-      title.className = "detail-title";
-      title.textContent = track.title || activeTrackSummary?.title || "Untitled";
-
-      const artist = document.createElement("p");
-      artist.className = "detail-artist";
-      artist.textContent = track.artist || activeTrackSummary?.artist || "Unknown Artist";
-
-      titleBlock.append(title, artist);
-
-      const pillRow = document.createElement("div");
-      pillRow.className = "detail-pill-row";
-
-      const confidenceBadge = document.createElement("span");
-      confidenceBadge.className = `confidence ${overallConfidence.klass}`;
-      confidenceBadge.textContent = `Overall ${overallConfidence.label}`;
-
-      const timingSourcePill = document.createElement("span");
-      timingSourcePill.className = "detail-pill";
-      timingSourcePill.textContent = `Source ${formatTimingSource(payload?.timing_source)}`;
-
-      const languagePill = document.createElement("span");
-      languagePill.className = "detail-pill";
-      languagePill.textContent = `Lang ${(payload?.detected_language || "unknown").toString().toUpperCase()}`;
-
-      pillRow.append(confidenceBadge, timingSourcePill, languagePill);
-
-      const infoGrid = document.createElement("div");
-      infoGrid.className = "detail-info-grid";
-      infoGrid.append(
-        createInfoItem("Duration", formatDuration(track.duration)),
-        createInfoItem("Processing Time", formatProcessingTime(payload?.processing_time_seconds)),
-        createInfoItem("Timing Source", formatTimingSource(payload?.timing_source)),
-        createInfoItem("Detected Language", payload?.detected_language || "unknown"),
-        createInfoItem("Cached", payload?.cached ? "yes" : "no"),
-        createInfoItem("ISRC", track.isrc || "n/a")
-      );
-
-      header.append(titleBlock, pillRow, infoGrid);
-
-      const statsPanel = document.createElement("section");
-      statsPanel.className = "detail-stats";
-      statsPanel.append(
-        createStatCard("Total Lines", String(stats.totalLines)),
-        createStatCard("Total Words", String(stats.totalWords)),
-        createStatCard("Avg Word Conf.", formatWordConfidence(stats.average)),
-        createStatCard("Min Word Conf.", formatWordConfidence(stats.minimum)),
-        createStatCard("Max Word Conf.", formatWordConfidence(stats.maximum))
-      );
-
-      const lyricsSection = document.createElement("section");
-      lyricsSection.className = "lyrics-section";
-
-      const lyricsHeading = document.createElement("h4");
-      lyricsHeading.className = "lyrics-heading";
-      lyricsHeading.textContent = "Line-by-line timing inspector";
-
-      const lyricsSubheading = document.createElement("p");
-      lyricsSubheading.className = "lyrics-subheading";
-      lyricsSubheading.textContent = "Each word chip shows confidence %. Hover a chip for exact start/end timestamps.";
-
-      const lyricsList = document.createElement("div");
-      lyricsList.className = "lyrics-list";
-
-      if (lines.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "lyrics-empty";
-        empty.textContent = "No line data is available for this track in the cache.";
-        lyricsList.append(empty);
-      } else {
-        lines.forEach((line, index) => {
-          const row = document.createElement("article");
-          row.className = "lyrics-row";
-
-          const lineNo = document.createElement("span");
-          lineNo.className = "line-no";
-          lineNo.textContent = String(index + 1).padStart(2, "0");
-
-          const lineRange = document.createElement("span");
-          lineRange.className = "line-range";
-          lineRange.textContent = `${formatTimestamp(line?.start)} -> ${formatTimestamp(line?.end)}`;
-
-          const wordsWrap = document.createElement("div");
-          wordsWrap.className = "line-words";
-          const words = deriveLineWords(line);
-
-          if (words.length === 0) {
-            const emptyWord = document.createElement("span");
-            emptyWord.className = "word-chip unknown";
-            emptyWord.textContent = line?.text || "(empty line)";
-            wordsWrap.append(emptyWord);
-          } else {
-            for (const word of words) {
-              const wordText = word?.text || "(blank)";
-              const start = word?.start ?? line?.start;
-              const end = word?.end ?? line?.end;
-              const chip = document.createElement("span");
-              chip.className = `word-chip ${confidenceClass(word?.confidence)}`;
-              chip.title = `${formatExactSeconds(start)} -> ${formatExactSeconds(end)}`;
-
-              const text = document.createElement("span");
-              text.className = "word-text";
-              text.textContent = wordText;
-
-              const score = document.createElement("span");
-              score.className = "word-score";
-              score.textContent = formatWordConfidence(word?.confidence);
-
-              chip.append(text, score);
-              wordsWrap.append(chip);
+          ww.forEach((w) => {
+            const c = normalizeConfidence(w.confidence);
+            if (c !== null) {
+              minConf = Math.min(minConf, c);
+              maxConf = Math.max(maxConf, c);
             }
-          }
-
-          row.append(lineNo, lineRange, wordsWrap);
-          lyricsList.append(row);
+          });
         });
-      }
 
-      lyricsSection.append(lyricsHeading, lyricsSubheading, lyricsList);
-      detailContent.replaceChildren(header, statsPanel, lyricsSection);
-    }
+        const minConfText =
+          minConf !== Infinity ? Math.round(minConf * 100) + "%" : "N/A";
+        const maxConfText =
+          maxConf !== -Infinity ? Math.round(maxConf * 100) + "%" : "N/A";
 
-    function closeTrackInspector() {
-      detailRequestToken += 1;
-      activeTrackId = null;
-      activeTrackSummary = null;
-      detailTrackId.textContent = "";
-      setDetailVisibility(false);
-      if (lastTriggerCard && document.body.contains(lastTriggerCard)) {
-        lastTriggerCard.focus({ preventScroll: true });
-      }
-    }
+        const layout = document.createElement("div");
+        layout.className = "detail-layout";
 
-    async function openTrackInspector(trackId, sourceCard = null) {
-      if (!trackId) {
-        return;
-      }
+        // Sidebar
+        const sidebar = document.createElement("div");
+        sidebar.className = "detail-sidebar";
+        sidebar.innerHTML = `
+        <div class="stat-circle-wrap">
+          <div class="ring-chart" style="--pct: ${confPct}%">
+            <span class="ring-val">${conf !== null ? confPct + "%" : "--"}</span>
+          </div>
+          <span class="ring-label">Overall Accuracy</span>
+        </div>
+        <div class="detail-info-list">
+          <div class="info-row"><span class="info-label">Lines Aligned</span><span class="info-val">${lines.length}</span></div>
+          <div class="info-row"><span class="info-label">Words Detected</span><span class="info-val">${wCount}</span></div>
+          <div class="info-row"><span class="info-label">Accuracy Spread</span><span class="info-val">${minConfText} - ${maxConfText}</span></div>
+          <div class="info-row"><span class="info-label">Timing Engine</span><span class="info-val" style="text-transform:capitalize">${(payload?.timing_source || "").replace("_", " ")}</span></div>
+          <div class="info-row"><span class="info-label">Detected Lang</span><span class="info-val" style="text-transform:uppercase">${payload?.detected_language || "UNK"}</span></div>
+          <div class="info-row"><span class="info-label">Processing Time</span><span class="info-val">${payload?.processing_time_seconds ? payload.processing_time_seconds.toFixed(1) + "s" : "--"}</span></div>
+          <div class="info-row"><span class="info-label">Track Duration</span><span class="info-val">${formatDuration(t.duration)}</span></div>
+        </div>
+      `;
 
-      activeTrackId = String(trackId);
-      activeTrackSummary = tracksCache.find((track) => getTrackId(track) === activeTrackId) || null;
-      detailTrackId.textContent = `Track ID: ${activeTrackId}`;
-      lastTriggerCard = sourceCard || lastTriggerCard;
+        // Timeline
+        const timeline = document.createElement("div");
+        timeline.className = "timeline-container";
 
-      const requestToken = ++detailRequestToken;
-      setDetailVisibility(true);
-      renderDetailLoading(activeTrackSummary);
+        if (lines.length === 0) {
+          timeline.innerHTML = `<div class="empty-state">No lyrics timeline data available in cache.</div>`;
+        } else {
+          lines.forEach((l) => {
+            const row = document.createElement("div");
+            row.className = "lyrics-row";
 
-      try {
-        const payload = await requestJSON(`/api/cache/${encodeURIComponent(activeTrackId)}`);
-        if (requestToken !== detailRequestToken) {
-          return;
+            const timing = document.createElement("div");
+            timing.className = "line-timing";
+            timing.innerHTML = `<span class="time-start">${formatPrecisionTime(l.start)}</span><span class="time-end">${formatPrecisionTime(l.end)}</span>`;
+
+            const wordsWrap = document.createElement("div");
+            wordsWrap.className = "words-wrapper";
+
+            const words =
+              l.words && l.words.length
+                ? l.words
+                : l.text
+                  ? l.text
+                      .split(" ")
+                      .map((w) => ({
+                        text: w,
+                        start: l.start,
+                        end: l.end,
+                        confidence: null,
+                      }))
+                  : [];
+
+            if (words.length === 0) {
+              wordsWrap.innerHTML = `<span class="word-node node-none">(Empty Line)</span>`;
+            } else {
+              words.forEach((w) => {
+                const node = document.createElement("span");
+                const cClass = confidenceClass(w.confidence);
+                node.className = `word-node node-${cClass}`;
+                node.textContent = w.text;
+
+                const start = w.start !== undefined ? w.start : l.start;
+                const end = w.end !== undefined ? w.end : l.end;
+                const cVal = normalizeConfidence(w.confidence);
+
+                node.innerHTML += `
+                <div class="word-tooltip">
+                  <span class="tt-time">${start.toFixed(2)}s – ${end.toFixed(2)}s</span>
+                  <span class="tt-conf ${cClass}">Conf: ${cVal !== null ? Math.round(cVal * 100) + "%" : "N/A"}</span>
+                </div>
+              `;
+                wordsWrap.appendChild(node);
+              });
+            }
+
+            row.appendChild(timing);
+            row.appendChild(wordsWrap);
+            timeline.appendChild(row);
+          });
         }
-        renderTrackDetail(payload, activeTrackId);
-      } catch (error) {
-        if (requestToken !== detailRequestToken) {
-          return;
+
+        layout.appendChild(sidebar);
+        layout.appendChild(timeline);
+
+        detailContent.innerHTML = "";
+        detailContent.appendChild(layout);
+      }
+
+      async function openTrackInspector(id) {
+        if (!id) return;
+        activeTrackId = String(id);
+
+        const summary = tracksCache.find(
+          (t) => getTrackId(t) === activeTrackId,
+        );
+        detailHeaderTitle.textContent = summary
+          ? summary.title
+          : "Loading Analysis...";
+        detailHeaderArtist.textContent = summary ? summary.artist : "";
+        detailTrackId.textContent = activeTrackId;
+
+        tracksPanel.classList.add("show-detail");
+        showDetailLoading();
+
+        const token = ++detailRequestToken;
+        try {
+          const data = await requestJSON(
+            `/api/cache/${encodeURIComponent(activeTrackId)}`,
+          );
+          if (token === detailRequestToken)
+            renderTrackDetail(data, activeTrackId);
+        } catch (err) {
+          if (token === detailRequestToken) showDetailError(err.message);
         }
-        renderDetailError(error?.message || "Request failed.");
-      }
-    }
-
-    function createTrackCard(track) {
-      const card = document.createElement("article");
-      card.className = "track-card";
-
-      const trackId = getTrackId(track);
-      if (trackId) {
-        card.classList.add("clickable");
-        card.dataset.trackId = trackId;
-        card.tabIndex = 0;
-        card.setAttribute("role", "button");
-        card.setAttribute("aria-label", `Inspect sync details for ${track.title || "Untitled"}`);
       }
 
-      const title = document.createElement("h3");
-      title.className = "track-title";
-      title.textContent = track.title || "Untitled";
+      // --- Events ---
+      syncForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          const payload = parseInput(syncInput.value);
+          setBusy(true);
+          startProcessingFeedback();
 
-      const artist = document.createElement("p");
-      artist.className = "track-artist";
-      artist.textContent = track.artist || "Unknown Artist";
+          await requestJSON("/api/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
 
-      const meta = document.createElement("div");
-      meta.className = "meta";
-
-      const confidence = formatConfidence(track.confidence);
-      const rows = [
-        { key: "Confidence", value: confidence.label, klass: `confidence ${confidence.klass}` },
-        { key: "Timing Source", value: formatTimingSource(track.timing_source) },
-        { key: "Duration", value: formatDuration(track.duration) },
-        { key: "Processed", value: formatDate(track.created_at) }
-      ];
-
-      for (const row of rows) {
-        const line = document.createElement("div");
-        line.className = "meta-row";
-
-        const key = document.createElement("span");
-        key.textContent = row.key;
-
-        const value = document.createElement("span");
-        if (row.klass) {
-          value.className = row.klass;
+          setFeedback("success", "Synchronization successfully processed.");
+          syncInput.value = "";
+          await loadTracks();
+        } catch (err) {
+          setFeedback("error", `Error: ${err.message}`);
+        } finally {
+          stopProcessingFeedback();
+          setBusy(false);
         }
-        value.textContent = row.value;
-
-        line.append(key, value);
-        meta.append(line);
-      }
-
-      card.append(title, artist, meta);
-      return card;
-    }
-
-    function renderTracks(tracks) {
-      trackList.innerHTML = "";
-      const list = Array.isArray(tracks) ? tracks.slice() : [];
-
-      list.sort((a, b) => {
-        const aDate = new Date(a.created_at || 0).getTime();
-        const bDate = new Date(b.created_at || 0).getTime();
-        return bDate - aDate;
       });
 
-      tracksCache = list;
-      trackCount.textContent = `${list.length} ${list.length === 1 ? "track" : "tracks"}`;
-      emptyState.hidden = list.length !== 0;
+      trackList.addEventListener("click", (e) => {
+        const card = e.target.closest(".track-card");
+        if (card && trackList.contains(card)) {
+          openTrackInspector(card.dataset.id);
+        }
+      });
 
-      if (activeTrackId && !list.some((track) => getTrackId(track) === activeTrackId)) {
-        closeTrackInspector();
-      }
+      trackList.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          const card = e.target.closest(".track-card");
+          if (card) {
+            e.preventDefault();
+            openTrackInspector(card.dataset.id);
+          }
+        }
+      });
 
-      if (list.length === 0) {
-        return;
-      }
+      detailBackButton.addEventListener("click", closeTrackInspector);
 
-      const grid = document.createElement("div");
-      grid.className = "track-grid";
-
-      for (const track of list) {
-        grid.append(createTrackCard(track));
-      }
-
-      trackList.append(grid);
-    }
-
-    async function loadTracks() {
-      trackList.setAttribute("aria-busy", "true");
-      try {
-        const tracks = await requestJSON("/api/tracks");
-        renderTracks(tracks);
-      } catch (error) {
-        renderTracks([]);
-        setFeedback("error", `Could not load processed songs: ${error.message}`);
-      } finally {
-        trackList.setAttribute("aria-busy", "false");
-      }
-    }
-
-    trackList.addEventListener("click", (event) => {
-      const card = event.target.closest(".track-card.clickable");
-      if (!card || !trackList.contains(card)) {
-        return;
-      }
-      openTrackInspector(card.dataset.trackId, card);
-    });
-
-    trackList.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") {
-        return;
-      }
-      const card = event.target.closest(".track-card.clickable");
-      if (!card || !trackList.contains(card)) {
-        return;
-      }
-      event.preventDefault();
-      openTrackInspector(card.dataset.trackId, card);
-    });
-
-    detailBackButton.addEventListener("click", () => {
-      closeTrackInspector();
-    });
-
-    detailContent.addEventListener("click", (event) => {
-      const retryButton = event.target.closest("[data-detail-retry]");
-      if (!retryButton || !activeTrackId) {
-        return;
-      }
-      openTrackInspector(activeTrackId, lastTriggerCard);
-    });
-
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && tracksPanel.classList.contains("show-detail")) {
-        closeTrackInspector();
-      }
-    });
-
-    syncForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      let payload;
-      try {
-        payload = parseInput(syncInput.value);
-      } catch (error) {
-        setFeedback("error", error.message);
-        return;
-      }
-
-      setBusy(true);
-      startProcessingFeedback();
-
-      try {
-        await requestJSON("/api/sync", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        setFeedback("success", "Sync complete. Your track is now in the processed list.");
-        syncInput.value = "";
-        await loadTracks();
-      } catch (error) {
-        setFeedback("error", `Sync failed: ${error.message}`);
-      } finally {
-        stopProcessingFeedback();
-        setBusy(false);
-      }
-    });
-
-    loadTracks();
-  </script>
-</body>
+      // Init
+      loadTracks();
+    </script>
+  </body>
 </html>
